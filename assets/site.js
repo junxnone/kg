@@ -36,16 +36,15 @@
   // 标签页过滤
   const cloud = $('#cloud');
   if (cloud) {
-    const f = $('#tagfilter'), h = $('#hide1');
+    const f = $('#tagfilter');
     const apply = () => {
       const q = f.value.trim().toLowerCase();
       cloud.querySelectorAll('.tag').forEach((a) => {
-        const hide = (h.checked && !q && a.dataset.n === '1') || (q && !a.textContent.toLowerCase().includes(q));
+        const hide = q && !a.textContent.toLowerCase().includes(q);
         a.style.display = hide ? 'none' : '';
       });
     };
     f.addEventListener('input', apply);
-    h.addEventListener('change', apply);
     apply();
   }
 

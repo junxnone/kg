@@ -41,7 +41,6 @@ pre.mermaid{background:none;text-align:center}
 .list .sub{margin-left:6px}.list time{float:right;color:var(--sub);font-size:.85em}
 .tagbar{display:flex;gap:16px;align-items:center;margin:10px 0;flex-wrap:wrap}
 .tagbar input[type=search]{padding:5px 10px;border:1px solid var(--bd);border-radius:6px;background:var(--bg);color:var(--fg)}
-.cloud{line-height:2.1}.tag{margin-right:8px;white-space:nowrap}.tag sup{color:var(--sub);font-size:.7em}
 iframe.graph{width:100%;height:calc(100vh - 130px);border:1px solid var(--bd);border-radius:8px;background:#000}
 :root{--pagefind-ui-scale:1;--pagefind-ui-primary:var(--accent);--pagefind-ui-text:var(--fg);--pagefind-ui-background:var(--bg);--pagefind-ui-border:var(--bd);--pagefind-ui-tag:var(--chip);--pagefind-ui-font:inherit}
 
@@ -80,3 +79,9 @@ body.toc-collapsed aside.toc-nav,body.toc-empty aside.toc-nav,body.toc-empty #to
 #scroll-btn{bottom:105px}
 body:not(.toc-collapsed) #toc-toggle{color:var(--accent);border-color:var(--accent);background:transparent}
 aside.toc-nav{background:transparent;border-left:0}
+
+/* tag cloud */
+.cloud{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:2px 14px;line-height:1.25;padding:16px 4px}
+.cloud .tag{margin:0;white-space:nowrap;font-weight:600;color:hsl(var(--h),65%,42%)}
+[data-theme=dark] .cloud .tag{color:hsl(var(--h),70%,68%)}
+.cloud .tag:hover{text-decoration:none;opacity:.7}

@@ -157,7 +157,9 @@ export function notFoundPage(cfg) {
 
 // 最近：两个 tab —— 最新文章（按创建时间）/ 最近更新（按更新时间）
 export function recentPage(cfg, articles, limit = 100) {
-  const top = (field) => [...articles].filter((a) => a[field]).sort((a, b) => b[field].localeCompare(a[field])).slice(0, limit);
+  // 最近更新 只列创建之后真正被修改过的文章（更新时间比创建时间晚 1 小时以上）
+  const edited = (a) => a.updated && (!a.created || Date.parse(a.updated) - Date.parse(a.created) > 3600e3);
+  const top = (field) => [...articles].filter((a) => a[field] && (field !== 'updated' || edited(a))).sort((a, b) => b[field].localeCompare(a[field])).slice(0, limit);
   const body = `<h1>🆕 最近</h1>
 <div class="tabs" role="tablist">
   <button type="button" class="tab on" data-tab="new" role="tab">最新文章</button>

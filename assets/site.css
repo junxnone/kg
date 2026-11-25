@@ -85,3 +85,9 @@ aside.toc-nav{background:transparent;border-left:0}
 .cloud .tag{margin:0;white-space:nowrap;font-weight:600;color:hsl(var(--h),65%,42%)}
 [data-theme=dark] .cloud .tag{color:hsl(var(--h),70%,68%)}
 .cloud .tag:hover{text-decoration:none;opacity:.7}
+
+/* tabs (recent page) */
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--bd);margin:8px 0 4px}
+.tab{padding:8px 18px;border:0;border-bottom:3px solid transparent;background:none;color:var(--sub);font:inherit;font-weight:600;cursor:pointer}
+.tab.on{color:var(--accent);border-bottom-color:var(--accent)}
+.pane[hidden]{display:none}

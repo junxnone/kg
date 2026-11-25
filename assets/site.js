@@ -124,3 +124,16 @@
   const up = mk('button', 'scroll-btn', '↑', '回到顶部', () => scrollTo({ top: 0, behavior: 'smooth' }));
   addEventListener('scroll', () => { up.style.display = scrollY >= 500 ? 'block' : 'none'; }, { passive: true });
 })();
+
+// ---- 最近页：tab 切换（#upd 直达最近更新）----
+(() => {
+  const tabs = document.querySelectorAll('.tab');
+  if (!tabs.length) return;
+  const show = (k) => {
+    tabs.forEach((t) => t.classList.toggle('on', t.dataset.tab === k));
+    document.querySelectorAll('.pane').forEach((p) => { p.hidden = p.id !== 'pane-' + k; });
+    history.replaceState(null, '', '#' + k);
+  };
+  tabs.forEach((t) => t.addEventListener('click', () => show(t.dataset.tab)));
+  if (location.hash === '#upd') show('upd');
+})();

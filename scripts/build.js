@@ -75,8 +75,8 @@ write('kg.json', genKgJson(cfg, roots));
 write('tags/index.html', T.tagsIndexPage(cfg, tags, tagFile));
 for (const [t, arts] of tags) write(`tags/${tagFiles.get(t)}.html`, T.tagPage(cfg, t, arts));
 
-const recent = [...articles].sort((a, b) => (b.updated || '').localeCompare(a.updated || '')).slice(0, 40);
-write('index.html', T.homePage(cfg, roots, counts, recent));
+write('index.html', T.homePage(cfg, roots, counts));
+write('recent.html', T.recentPage(cfg, articles));
 write('search.html', T.searchPage(cfg));
 write('graph.html', T.graphPage(cfg));
 write('404.html', T.notFoundPage(cfg));

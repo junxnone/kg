@@ -23,6 +23,7 @@ ${head}
   <nav>
     <a href="${b}tree.html">🌲 树形</a>
     <a href="${b}tags/">🏷️ 标签</a>
+    <a href="${b}recent.html">🆕 最近</a>
     <a href="${b}search.html">🔍 搜索</a>
     <a href="${b}graph.html">🧊 3D</a>
   </nav>
@@ -67,11 +68,11 @@ export function articlePage(cfg, a, r, tags, tagFile) {
 const li = (cfg, a, extra = '') =>
   `<li><a href="${articleHref(cfg.basePath, a)}">${esc(a.title)}</a> <span class="sub">${esc(a.repo)} › ${esc(a.segs.slice(0, -1).join(' › '))}</span>${extra}</li>`;
 
-export function articleList(cfg, items) {
-  return `<ul class="list">${items.map((a) => li(cfg, a, `<time>${day(a.updated || a.created)}</time>`)).join('')}</ul>`;
+export function articleList(cfg, items, field = 'updated') {
+  return `<ul class="list">${items.map((a) => li(cfg, a, `<time>${day(a[field] || a.created)}</time>`)).join('')}</ul>`;
 }
 
-export function homePage(cfg, roots, counts, recent) {
+export function homePage(cfg, roots, counts) {
   const cards = cfg.repos
     .map((r) => `<a class="card" href="${cfg.basePath}tree.html#${enc(r.name)}"><b>${esc(r.title)}</b><span>${esc(r.desc)}</span><em>${counts[r.name] || 0} 篇</em></a>`)
     .join('');
@@ -81,10 +82,10 @@ export function homePage(cfg, roots, counts, recent) {
 <p>${total} 篇文章 · ${cfg.repos.length} 个知识库</p>
 <div class="entry">
   <a href="${cfg.basePath}tree.html">🌲 树形浏览</a><a href="${cfg.basePath}search.html">🔍 搜索</a>
-  <a href="${cfg.basePath}tags/">🏷️ 标签</a><a href="${cfg.basePath}graph.html">🧊 3D 知识图谱</a>
+  <a href="${cfg.basePath}tags/">🏷️ 标签</a><a href="${cfg.basePath}recent.html">🆕 最近</a><a href="${cfg.basePath}graph.html">🧊 3D 知识图谱</a>
 </div></section>
 <div class="cards">${cards}</div>
-<h2>最近更新</h2>${articleList(cfg, recent)}`;
+`;
   return layout(cfg, { title: '首页', body });
 }
 
@@ -142,4 +143,17 @@ export function graphPage(cfg) {
 
 export function notFoundPage(cfg) {
   return layout(cfg, { title: '404', body: `<h1>404</h1><p>页面不存在。<a href="${cfg.basePath}">回首页</a> 或 <a href="${cfg.basePath}search.html">搜索</a>。</p>` });
+}
+
+// 最近：两个 tab —— 最新文章（按创建时间）/ 最近更新（按更新时间）
+export function recentPage(cfg, articles, limit = 100) {
+  const top = (field) => [...articles].filter((a) => a[field]).sort((a, b) => b[field].localeCompare(a[field])).slice(0, limit);
+  const body = `<h1>🆕 最近</h1>
+<div class="tabs" role="tablist">
+  <button type="button" class="tab on" data-tab="new" role="tab">最新文章</button>
+  <button type="button" class="tab" data-tab="upd" role="tab">最近更新</button>
+</div>
+<section class="pane" id="pane-new">${articleList(cfg, top('created'), 'created')}</section>
+<section class="pane" id="pane-upd" hidden>${articleList(cfg, top('updated'), 'updated')}</section>`;
+  return layout(cfg, { title: '最近', body });
 }

@@ -16,7 +16,7 @@
     const rel = (h) => decodeURIComponent(base.replace(/^\//, '') + h);
     const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     const node = (n) => {
-      const href = n.h ? base + n.h.split('/').map(encodeURIComponent).join('/') : '';
+      const href = n.h ? base + n.h : ''; // n.h 已是 percent-encoded
       const isCur = n.h && rel(n.h) === cur;
       const label = n.h ? `<a href="${href}"${isCur ? ' class="cur"' : ''}>${esc(n.n)}</a>` : `<span class="dir">${esc(n.n)}</span>`;
       if (!n.c) return `<li>${label}</li>`;

@@ -111,7 +111,7 @@ aside.toc-nav{background:var(--bg);border-radius:6px;box-shadow:0 1px 6px rgba(0
   #kg-toggle{display:block;position:fixed;right:15px;bottom:105px;width:35px;height:35px;padding:0;z-index:20;border:2px solid var(--fg);border-radius:4px;color:var(--fg);background:transparent;cursor:pointer;font:bold 12px/31px sans-serif;text-align:center}
   body.kg-open #kg-toggle{color:var(--accent);border-color:var(--accent)}
   #scroll-btn{bottom:150px}
-  #side{display:none;position:fixed;top:auto;left:auto;right:60px;bottom:0;width:max-content;min-width:120px;max-width:min(80vw,320px);max-height:calc(100% - 110px);height:auto;transform:none!important;border:0;border-radius:6px;background:var(--bg);box-shadow:0 1px 6px rgba(0,0,0,.2);text-align:right;z-index:10}
+  #side{display:none;position:fixed;top:auto;left:auto;right:60px;bottom:0;width:max-content;min-width:120px;max-width:min(80vw,320px);max-height:calc(100% - 110px);height:auto;transform:none!important;border:0;border-radius:6px;background:var(--bg);box-shadow:0 1px 6px rgba(0,0,0,.2);text-align:left;z-index:10}
   body.kg-open #side{display:block}
-  #side .tree ul{padding-left:0;padding-right:14px}
+  #side .tree ul{padding-left:14px;padding-right:0}
 }

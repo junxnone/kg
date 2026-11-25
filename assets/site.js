@@ -81,19 +81,27 @@
     return e;
   };
 
-  // 侧边栏：宽屏默认展开，选择记在 localStorage；窄屏（<800px）每次打开页面都收起，且不保存
+  // 侧边栏：宽屏默认展开，选择记在 localStorage（窄屏 <800px 改为右侧 KG 弹出树，见下）
   if (document.getElementById('side')) {
     const narrow = () => innerWidth < 800;
-    const saved = store.get('side-collapsed');
-    body.classList.toggle('side-collapsed', narrow() || saved === '1');
+    body.classList.toggle('side-collapsed', store.get('side-collapsed') === '1');
     mk('button', 'side-toggle', '☰', '显示/隐藏侧边栏', () => {
       body.classList.toggle('side-collapsed');
-      if (!narrow()) store.set('side-collapsed', body.classList.contains('side-collapsed') ? '1' : '0');
+      store.set('side-collapsed', body.classList.contains('side-collapsed') ? '1' : '0');
     });
-    // 窄屏点击文章链接后先收起（页面随后会跳转）
+
+    // 窄屏：右侧 KG 按钮弹出/收起树；点击文章链接后自动收起；与 TOC 互斥
+    mk('button', 'kg-toggle', 'KG', '显示/隐藏文章树', () => {
+      body.classList.toggle('kg-open');
+      if (body.classList.contains('kg-open') && narrow()) body.classList.add('toc-collapsed');
+    });
     document.getElementById('side').addEventListener('click', (e) => {
-      if (narrow() && e.target.closest('a')) body.classList.add('side-collapsed');
+      if (e.target.closest('a')) body.classList.remove('kg-open');
     });
+    document.addEventListener('click', (e) => {
+      if (e.target.closest('#toc-toggle')) body.classList.remove('kg-open');
+    });
+    addEventListener('resize', () => { if (!narrow()) body.classList.remove('kg-open'); });
   }
 
   // TOC：宽屏默认展开，窄屏收起

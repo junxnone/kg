@@ -64,7 +64,7 @@ body.side-collapsed .with-side main{margin-left:0}
 #toc-toggle:hover,#scroll-btn:hover{opacity:.7}
 body:not(.toc-collapsed) #toc-toggle{color:var(--bg);background:var(--fg)}
 #scroll-btn{bottom:105px;display:none;font:bold 18px/30px sans-serif}
-aside.toc-nav{position:fixed;right:60px;bottom:0;width:max-content;min-width:100px;max-width:250px;max-height:calc(100% - 110px);overflow:auto;padding:8px 10px;font-size:.82em;line-height:1.5;background:transparent;border-left:0;z-index:10}
+aside.toc-nav{position:fixed;right:60px;bottom:0;width:max-content;min-width:100px;max-width:250px;max-height:calc(100% - 110px);overflow:auto;padding:8px 10px;font-size:.82em;line-height:1.5;background:var(--bg);border-left:0;z-index:10}
 .page_toc div{margin:2px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .page_toc a{color:var(--sub)}.page_toc a.active{color:var(--accent);font-weight:700}
 .page_toc .l3{padding-left:10px}.page_toc .l4{padding-left:20px}.page_toc .l5{padding-left:30px}.page_toc .l6{padding-left:40px}
@@ -78,7 +78,7 @@ body.toc-collapsed aside.toc-nav,body.toc-empty aside.toc-nav,body.toc-empty #to
 #toc-toggle{bottom:60px;font:bold 12px/31px sans-serif}
 #scroll-btn{bottom:105px}
 body:not(.toc-collapsed) #toc-toggle{color:var(--accent);border-color:var(--accent);background:transparent}
-aside.toc-nav{background:transparent;border-left:0}
+aside.toc-nav{border-left:0}
 
 /* tag cloud */
 .cloud .tag{margin:0;white-space:nowrap;font-weight:600;color:hsl(var(--h),65%,42%)}
@@ -97,4 +97,4 @@ aside.toc-nav{background:transparent;border-left:0}
 .cloud .layer:last-child{border-bottom:0}
 
 /* TOC: semi-transparent so the text stays readable over the content */
-aside.toc-nav{background:color-mix(in srgb,var(--bg) 78%,transparent);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);border-radius:6px}
+aside.toc-nav{background:var(--bg);border-radius:6px;box-shadow:0 1px 6px rgba(0,0,0,.15)}

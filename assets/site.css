@@ -81,7 +81,6 @@ body:not(.toc-collapsed) #toc-toggle{color:var(--accent);border-color:var(--acce
 aside.toc-nav{background:transparent;border-left:0}
 
 /* tag cloud */
-.cloud{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:2px 14px;line-height:1.25;padding:16px 4px}
 .cloud .tag{margin:0;white-space:nowrap;font-weight:600;color:hsl(var(--h),65%,42%)}
 [data-theme=dark] .cloud .tag{color:hsl(var(--h),70%,68%)}
 .cloud .tag:hover{text-decoration:none;opacity:.7}
@@ -91,3 +90,11 @@ aside.toc-nav{background:transparent;border-left:0}
 .tab{padding:8px 18px;border:0;border-bottom:3px solid transparent;background:none;color:var(--sub);font:inherit;font-weight:600;cursor:pointer}
 .tab.on{color:var(--accent);border-bottom-color:var(--accent)}
 .pane[hidden]{display:none}
+
+/* tag cloud layers: one block per 50 tags */
+.cloud{padding:8px 4px}
+.cloud .layer{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:2px 14px;line-height:1.25;padding:14px 4px;border-bottom:1px dashed var(--bd)}
+.cloud .layer:last-child{border-bottom:0}
+
+/* TOC: semi-transparent so the text stays readable over the content */
+aside.toc-nav{background:color-mix(in srgb,var(--bg) 78%,transparent);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);border-radius:6px}

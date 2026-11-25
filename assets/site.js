@@ -43,6 +43,9 @@
         const hide = q && !a.textContent.toLowerCase().includes(q);
         a.style.display = hide ? 'none' : '';
       });
+      cloud.querySelectorAll('.layer').forEach((l) => {
+        l.style.display = [...l.querySelectorAll('.tag')].some((a) => a.style.display !== 'none') ? '' : 'none';
+      });
     };
     f.addEventListener('input', apply);
     apply();

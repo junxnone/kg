@@ -94,19 +94,29 @@ export function treePage(cfg, treeHtmlStr) {
 }
 
 export function tagsIndexPage(cfg, tags, tagFile) {
-  const items = [...tags];
+  const items = [...tags].sort((a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0], 'zh-Hans-CN'));
   const max = Math.max(1, ...items.map(([, a]) => a.length));
   const hash = (s) => [...s].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7);
-  // 词云：字号按词频（对数）缩放；按名称哈希打散顺序，大小词混排；颜色按名称哈希取色相
+  // 词云：字号按词频（对数）缩放；颜色按名称哈希取色相
   const size = (n) => (0.8 + 2.7 * Math.log(n) / Math.log(max + 1)).toFixed(2);
-  const cloud = items
-    .sort((a, b) => hash(a[0]) - hash(b[0]))
-    .map(([t, arts]) => `<a class="tag" data-n="${arts.length}" title="${arts.length} 篇" style="font-size:${size(arts.length)}em;--h:${hash(t) % 360}" href="${cfg.basePath}tags/${tagFile(t)}.html">${esc(t)}</a>`)
-    .join(' ');
+  const tag = ([t, arts]) =>
+    `<a class="tag" data-n="${arts.length}" title="${arts.length} 篇" style="font-size:${size(arts.length)}em;--h:${hash(t) % 360}" href="${cfg.basePath}tags/${tagFile(t)}.html">${esc(t)}</a>`;
+  // 频率从高到低，每 50 个一层；层内用固定种子洗牌（构建结果稳定），所以每层内位置随机
+  let seed = 20240607;
+  const rnd = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296);
+  const layers = [];
+  for (let i = 0; i < items.length; i += 50) {
+    const layer = items.slice(i, i + 50);
+    for (let j = layer.length - 1; j > 0; j--) {
+      const k = Math.floor(rnd() * (j + 1));
+      [layer[j], layer[k]] = [layer[k], layer[j]];
+    }
+    layers.push(`<div class="layer">${layer.map(tag).join(' ')}</div>`);
+  }
   const body = `<h1>🏷️ 标签云</h1>
-<p class="sub">共 ${items.length} 个标签（issue Labels + 路径各层级），字号越大文章越多，点击查看包含该标签的文章列表。</p>
+<p class="sub">共 ${items.length} 个标签（issue Labels + 路径各层级），字号越大文章越多；从上到下频率递减，每 50 个一层。点击查看包含该标签的文章列表。</p>
 <div class="tagbar"><input id="tagfilter" type="search" placeholder="过滤标签…"></div>
-<div class="cloud" id="cloud">${cloud}</div>`;
+<div class="cloud" id="cloud">${layers.join('')}</div>`;
   return layout(cfg, { title: '标签', body });
 }
 

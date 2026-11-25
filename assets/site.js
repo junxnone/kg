@@ -81,13 +81,18 @@
     return e;
   };
 
-  // 侧边栏：默认展开（窄屏收起），选择记在 localStorage
+  // 侧边栏：宽屏默认展开，选择记在 localStorage；窄屏（<800px）每次打开页面都收起，且不保存
   if (document.getElementById('side')) {
+    const narrow = () => innerWidth < 800;
     const saved = store.get('side-collapsed');
-    body.classList.toggle('side-collapsed', saved === null ? innerWidth < 800 : saved === '1');
+    body.classList.toggle('side-collapsed', narrow() || saved === '1');
     mk('button', 'side-toggle', '☰', '显示/隐藏侧边栏', () => {
       body.classList.toggle('side-collapsed');
-      store.set('side-collapsed', body.classList.contains('side-collapsed') ? '1' : '0');
+      if (!narrow()) store.set('side-collapsed', body.classList.contains('side-collapsed') ? '1' : '0');
+    });
+    // 窄屏点击文章链接后先收起（页面随后会跳转）
+    document.getElementById('side').addEventListener('click', (e) => {
+      if (narrow() && e.target.closest('a')) body.classList.add('side-collapsed');
     });
   }
 

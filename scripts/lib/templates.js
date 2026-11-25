@@ -27,7 +27,6 @@ ${head}
     <a href="${b}graph.html">🧊 3D</a>
   </nav>
   <form class="q" action="${b}search.html"><input name="q" type="search" placeholder="搜索全部文章…" aria-label="搜索"></form>
-  <button id="theme" type="button" title="切换主题">◐</button>
 </header>
 <div class="wrap${sidebar ? ' with-side' : ''}">
 ${sidebar ? '<aside id="side"><div id="tree" class="side-inner">加载中…</div></aside>' : ''}
@@ -36,6 +35,7 @@ ${body}
 </main>
 ${tocHtml}
 </div>
+<button id="theme" type="button" title="切换黑白主题">◐</button>
 <script src="${b}assets/site.js" defer></script>
 </body>
 </html>

@@ -52,11 +52,10 @@ export function articlePage(cfg, a, r, tags, tagFile) {
   const labels = a.labels.map((l) => `<meta data-pagefind-filter="label" content="${esc(l)}">`).join('');
   const body = `<article data-pagefind-body>
 <meta data-pagefind-filter="repo" content="${esc(a.repo)}">${labels}
-<div class="crumbs">${crumbs}</div>
+<div class="head"><div class="crumbs">${crumbs}</div><a class="edit-btn" href="${esc(a.edit || `https://github.com/${repo.repo}/issues/${Number(a.num)}`)}" target="_blank" rel="noopener" title="在 GitHub 打开对应 issue 编辑">✏️ Edit</a></div>
 <div class="meta">
   ${a.created ? `<span>创建 ${day(a.created)}</span>` : ''}${a.updated ? `<span>更新 ${day(a.updated)}</span>` : ''}
   <span>${esc(a.repo)} #${Number(a.num)}</span>
-  ${a.edit ? `<a href="${esc(a.edit)}" target="_blank" rel="noopener">✏️ Issue</a>` : ''}
 </div>
 <div class="chips">${chips(cfg, tags, tagFile)}</div>
 <div class="md">${r.html}</div>

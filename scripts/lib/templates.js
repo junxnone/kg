@@ -99,8 +99,8 @@ export function tagsIndexPage(cfg, tags, tagFile) {
     .map(([t, arts]) => `<a class="tag" data-n="${arts.length}" style="font-size:${(0.85 + 0.9 * Math.log(arts.length) / Math.log(max + 1)).toFixed(2)}em" href="${cfg.basePath}tags/${tagFile(t)}.html">${esc(t)}<sup>${arts.length}</sup></a>`)
     .join(' ');
   const body = `<h1>🏷️ 标签</h1>
-<p class="sub">标签 = issue Labels + 路径各层级。共 ${items.length} 个。</p>
-<div class="tagbar"><input id="tagfilter" type="search" placeholder="过滤标签…"><label><input id="hide1" type="checkbox" checked> 隐藏仅 1 篇的标签</label></div>
+<p class="sub">标签 = issue Labels + 路径各层级。共 ${items.length} 个，点击标签查看包含它的文章列表。</p>
+<div class="tagbar"><input id="tagfilter" type="search" placeholder="过滤标签…"><label><input id="hide1" type="checkbox"> 隐藏仅 1 篇的标签</label></div>
 <div class="cloud" id="cloud">${cloud}</div>`;
   return layout(cfg, { title: '标签', body });
 }

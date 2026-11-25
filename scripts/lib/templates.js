@@ -105,7 +105,8 @@ export function tagsIndexPage(cfg, tags, tagFile) {
   let seed = 20240607;
   const rnd = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296);
   const layers = [];
-  for (let i = 0; i < items.length; i += 50) {
+  const LAYERS = 6; // 只显示频率最高的 6 层（300 个）
+  for (let i = 0; i < Math.min(items.length, LAYERS * 50); i += 50) {
     const layer = items.slice(i, i + 50);
     for (let j = layer.length - 1; j > 0; j--) {
       const k = Math.floor(rnd() * (j + 1));
@@ -114,7 +115,7 @@ export function tagsIndexPage(cfg, tags, tagFile) {
     layers.push(`<div class="layer">${layer.map(tag).join(' ')}</div>`);
   }
   const body = `<h1>🏷️ 标签云</h1>
-<p class="sub">共 ${items.length} 个标签（issue Labels + 路径各层级），字号越大文章越多；从上到下频率递减，每 50 个一层。点击查看包含该标签的文章列表。</p>
+<p class="sub">共 ${items.length} 个标签，这里显示频率最高的 ${Math.min(items.length, LAYERS * 50)} 个（issue Labels + 路径各层级）；字号越大文章越多，从上到下频率递减，每 50 个一层。点击查看包含该标签的文章列表。</p>
 <div class="tagbar"><input id="tagfilter" type="search" placeholder="过滤标签…"></div>
 <div class="cloud" id="cloud">${layers.join('')}</div>`;
   return layout(cfg, { title: '标签', body });

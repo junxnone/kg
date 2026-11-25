@@ -107,6 +107,11 @@
     apply();
     addEventListener('resize', apply);
 
+    // 窄屏（手机）点击目录链接后自动收起，不改变保存的偏好
+    toc.addEventListener('click', (e) => {
+      if (e.target.closest('a') && innerWidth < 1300) body.classList.add('toc-collapsed');
+    });
+
     // 滚动高亮当前标题
     const links = [...toc.querySelectorAll('a')];
     const heads = links.map((a) => document.getElementById(decodeURIComponent(a.getAttribute('href').slice(1))));

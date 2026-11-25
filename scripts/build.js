@@ -38,7 +38,14 @@ if (!articles.length) {
 
 // 2. 标签 = Labels ∪ 路径各层级；大小写不同的合并（取出现最多的写法），丢弃单个字母/数字的标签
 const variants = new Map(); // lower → Map(写法 → 次数)
-const raw = (a) => [...new Set([...a.labels, ...a.segs])];
+// 路径层级的标签名取该层级对应文章的标题（如 PARA → 并行计算）；没有对应文章时才用路径段原名
+const titleAt = new Map();
+for (const a of articles) {
+  const k = `${a.repo}/${a.segs.join('/')}`;
+  if (!titleAt.has(k)) titleAt.set(k, a.title);
+}
+const segTag = (a, i) => titleAt.get(`${a.repo}/${a.segs.slice(0, i + 1).join('/')}`) || a.segs[i];
+const raw = (a) => [...new Set([...a.labels, ...a.segs.map((_, i) => segTag(a, i))])];
 for (const a of articles) {
   for (const t of raw(a)) {
     const k = t.toLowerCase();

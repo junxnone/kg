@@ -115,3 +115,17 @@ aside.toc-nav{background:var(--bg);border-radius:6px;box-shadow:0 1px 6px rgba(0
   body.kg-open #side{display:block}
   #side .tree ul{padding-left:14px;padding-right:0}
 }
+
+/* search page (Pagefind UI): force readable colors in both themes */
+.pagefind-ui,.pagefind-ui__result-excerpt,.pagefind-ui__message,.pagefind-ui__result-tag,
+.pagefind-ui__filter-name,.pagefind-ui__filter-label,.pagefind-ui__filter-value,
+.pagefind-ui__button,.pagefind-ui__result-nested{color:var(--fg)!important}
+.pagefind-ui__result-excerpt,.pagefind-ui__result-nested{opacity:1!important;font-size:.95em;line-height:1.6}
+.pagefind-ui__result-link,.pagefind-ui__result-title a{color:var(--accent)!important;font-weight:700}
+.pagefind-ui__result{border-top:1px solid var(--bd)!important}
+.pagefind-ui__result-excerpt mark,.pagefind-ui mark{background:rgba(250,204,21,.4)!important;color:inherit!important;padding:0 2px;border-radius:2px}
+.pagefind-ui__search-input{background:var(--bg)!important;color:var(--fg)!important;border:1px solid var(--bd)!important}
+.pagefind-ui__search-input::placeholder{color:var(--sub)!important;opacity:1}
+.pagefind-ui__search-clear{color:var(--accent)!important;background:transparent!important}
+.pagefind-ui__result-tag{background:var(--chip)!important}
+.pagefind-ui__button{background:transparent!important;border:1px solid var(--bd)!important}

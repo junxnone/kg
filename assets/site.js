@@ -157,3 +157,8 @@
   tabs.forEach((t) => t.addEventListener('click', () => show(t.dataset.tab)));
   if (location.hash === '#upd') show('upd');
 })();
+
+// ---- PWA：注册 service worker（"添加到主屏幕 / 安装应用"需要）----
+if ('serviceWorker' in navigator) {
+  addEventListener('load', () => navigator.serviceWorker.register((document.body.dataset.base || '/') + 'sw.js').catch(() => {}));
+}

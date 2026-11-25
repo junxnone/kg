@@ -9,6 +9,7 @@ import { buildTree, treeJson, treeHtml } from './lib/tree.js';
 import { genKgJson } from './lib/kg.js';
 import { safeName } from './lib/util.js';
 import * as T from './lib/templates.js';
+import { writePwa } from './lib/pwa.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const arg = (k, d) => {
@@ -105,6 +106,7 @@ write('.nojekyll', '');
 
 // 5. 静态资源
 fs.cpSync(path.join(ROOT, 'assets'), path.join(OUT, 'assets'), { recursive: true });
+writePwa(cfg, OUT);
 
 console.log(`pages: ${articles.length} articles, ${tags.size} tags`);
 console.log(`math: ${stats.math} formulas, ${stats.mathFail} failed (rendered as red source)`);

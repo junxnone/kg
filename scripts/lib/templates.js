@@ -10,10 +10,16 @@ export function layout(cfg, { title, body, sidebar = false, toc = [], math = fal
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>${esc(title)} · ${esc(cfg.title)}</title>
 <script>document.documentElement.dataset.theme=localStorage.getItem('kg-theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')</script>
 <link rel="stylesheet" href="${b}assets/site.css">
+<link rel="manifest" href="${b}manifest.webmanifest">
+<meta name="theme-color" content="#2563eb">
+<link rel="apple-touch-icon" href="${b}icons/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="KG">
 ${math ? '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">' : ''}
 ${head}
 </head>

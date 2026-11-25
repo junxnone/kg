@@ -10,14 +10,6 @@ a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
 .top .q{margin-left:auto}
 .top input{padding:5px 10px;border:1px solid var(--bd);border-radius:6px;background:var(--bg);color:var(--fg);width:200px}
 #theme{border:1px solid var(--bd);background:none;color:var(--fg);border-radius:6px;cursor:pointer;padding:3px 9px}
-.wrap{display:flex;max-width:1500px;margin:0 auto}
-main{flex:1;min-width:0;padding:20px 32px 80px}
-.with-side main{max-width:960px}
-#side{width:300px;flex:none;border-right:1px solid var(--bd);background:var(--side);position:sticky;top:49px;height:calc(100vh - 49px);overflow:auto}
-.side-inner{padding:10px 8px;font-size:.88em;line-height:1.5}
-.toc{width:220px;flex:none;position:sticky;top:49px;align-self:flex-start;max-height:calc(100vh - 49px);overflow:auto;padding:20px 10px;font-size:.85em}
-.toc a{display:block;color:var(--sub);padding:1px 0}.toc .l3{padding-left:12px}.toc .l4{padding-left:24px}
-.toc-title{font-weight:700;margin-bottom:6px}
 .tree,.tree ul{list-style:none;margin:0;padding-left:14px}
 .tree{padding-left:0}
 .tree summary{cursor:pointer}.tree small{color:var(--sub)}
@@ -51,8 +43,33 @@ pre.mermaid{background:none;text-align:center}
 .tagbar{display:flex;gap:16px;align-items:center;margin:10px 0;flex-wrap:wrap}
 .tagbar input[type=search]{padding:5px 10px;border:1px solid var(--bd);border-radius:6px;background:var(--bg);color:var(--fg)}
 .cloud{line-height:2.1}.tag{margin-right:8px;white-space:nowrap}.tag sup{color:var(--sub);font-size:.7em}
-.graphpage main{max-width:none;padding:10px 16px}
 iframe.graph{width:100%;height:calc(100vh - 130px);border:1px solid var(--bd);border-radius:8px;background:#000}
 :root{--pagefind-ui-scale:1;--pagefind-ui-primary:var(--accent);--pagefind-ui-text:var(--fg);--pagefind-ui-background:var(--bg);--pagefind-ui-border:var(--bd);--pagefind-ui-tag:var(--chip);--pagefind-ui-font:inherit}
-@media(max-width:1100px){.toc{display:none}}
-@media(max-width:800px){.wrap.with-side{flex-direction:column}#side{width:100%;height:auto;max-height:40vh;position:static;border-right:0;border-bottom:1px solid var(--bd)}main{padding:16px}.top nav{display:none}}
+
+/* ---- layout (docsify style) ---- */
+main{padding:20px 32px 80px;max-width:960px;margin:0 auto}
+.graphpage main{max-width:none;padding:10px 16px}
+.with-side main{margin:0 0 0 300px;max-width:none;padding-left:32px}
+.with-side main>article{max-width:900px;margin:0 auto}
+
+/* sidebar: fixed on the left, collapsible (docsify) */
+#side{position:fixed;top:49px;bottom:0;left:0;width:300px;overflow:auto;background:var(--side);border-right:1px solid var(--bd);transition:transform .25s;z-index:5}
+.side-inner{padding:10px 8px 60px;font-size:.88em;line-height:1.5}
+body.side-collapsed #side{transform:translateX(-100%)}
+body.side-collapsed .with-side main{margin-left:0}
+#side-toggle{position:fixed;left:8px;bottom:8px;z-index:20;width:35px;height:35px;border:2px solid var(--fg);border-radius:4px;background:var(--bg);color:var(--fg);cursor:pointer;font-size:18px;line-height:1;padding:0}
+#side-toggle:hover{opacity:.7}
+
+/* TOC: floating list + "TOC" button (aiwiki style) */
+#toc-toggle,#scroll-btn{position:fixed;right:15px;width:35px;height:35px;padding:0;z-index:20;border:2px solid var(--fg);border-radius:4px;color:var(--fg);background:var(--bg);cursor:pointer;user-select:none;text-align:center}
+#toc-toggle{bottom:60px;font:bold 12px/31px sans-serif}
+#toc-toggle:hover,#scroll-btn:hover{opacity:.7}
+body:not(.toc-collapsed) #toc-toggle{color:var(--bg);background:var(--fg)}
+#scroll-btn{bottom:105px;display:none;font:bold 18px/30px sans-serif}
+aside.toc-nav{position:fixed;right:60px;bottom:0;width:max-content;min-width:100px;max-width:250px;max-height:calc(100% - 110px);overflow:auto;padding:8px 10px;font-size:.82em;line-height:1.5;background:var(--bg);border-left:1px solid var(--bd);z-index:10}
+.page_toc div{margin:2px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.page_toc a{color:var(--sub)}.page_toc a.active{color:var(--accent);font-weight:700}
+.page_toc .l3{padding-left:10px}.page_toc .l4{padding-left:20px}.page_toc .l5{padding-left:30px}.page_toc .l6{padding-left:40px}
+body.toc-collapsed aside.toc-nav,body.toc-empty aside.toc-nav,body.toc-empty #toc-toggle{display:none}
+@media(min-width:1300px){body:not(.toc-collapsed):not(.toc-empty) .with-side main{padding-right:calc(var(--toc-w,250px) + 70px)}}
+@media(max-width:800px){.with-side main{margin-left:0}#side{width:80%}.top nav{display:none}main{padding:16px}}

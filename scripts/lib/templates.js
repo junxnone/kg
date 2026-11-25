@@ -4,7 +4,7 @@ import { articleHref } from './markdown.js';
 export function layout(cfg, { title, body, sidebar = false, toc = [], math = false, head = '', cls = '' }) {
   const b = cfg.basePath;
   const tocHtml = toc.length
-    ? `<nav class="toc"><div class="toc-title">目录</div>${toc.map((t) => `<a class="l${t.level}" href="#${t.id}">${esc(t.text)}</a>`).join('')}</nav>`
+    ? `<aside class="toc-nav"><div class="page_toc">${toc.map((t) => `<div class="l${t.level}"><a href="#${t.id}" title="${esc(t.text)}">${esc(t.text)}</a></div>`).join('')}</div></aside>`
     : '';
   return `<!doctype html>
 <html lang="zh-CN">

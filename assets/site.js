@@ -63,3 +63,65 @@
     document.head.append(s);
   }
 })();
+
+// ---- docsify 式侧边栏开关 / aiwiki 式 TOC / 回到顶部 ----
+(() => {
+  const body = document.body;
+  const store = {
+    get: (k) => { try { return localStorage.getItem(k); } catch { return null; } },
+    set: (k, v) => { try { localStorage.setItem(k, v); } catch {} },
+  };
+  const mk = (tag, id, text, title, fn) => {
+    const e = document.createElement(tag);
+    Object.assign(e, { id, textContent: text, title, type: 'button' });
+    e.addEventListener('click', fn);
+    body.append(e);
+    return e;
+  };
+
+  // 侧边栏：默认展开（窄屏收起），选择记在 localStorage
+  if (document.getElementById('side')) {
+    const saved = store.get('side-collapsed');
+    body.classList.toggle('side-collapsed', saved === null ? innerWidth < 800 : saved === '1');
+    mk('button', 'side-toggle', '☰', '显示/隐藏侧边栏', () => {
+      body.classList.toggle('side-collapsed');
+      store.set('side-collapsed', body.classList.contains('side-collapsed') ? '1' : '0');
+    });
+  }
+
+  // TOC：宽屏默认展开，窄屏收起
+  const toc = document.querySelector('aside.toc-nav');
+  if (!toc) body.classList.add('toc-empty');
+  else {
+    const apply = () => {
+      const s = store.get('toc-collapsed');
+      body.classList.toggle('toc-collapsed', s === null ? innerWidth < 1300 : s === '1');
+      if (!body.classList.contains('toc-collapsed')) document.documentElement.style.setProperty('--toc-w', Math.ceil(toc.getBoundingClientRect().width) + 'px');
+    };
+    mk('button', 'toc-toggle', 'TOC', '显示/隐藏目录', () => {
+      store.set('toc-collapsed', body.classList.contains('toc-collapsed') ? '0' : '1');
+      apply();
+    });
+    apply();
+    addEventListener('resize', apply);
+
+    // 滚动高亮当前标题
+    const links = [...toc.querySelectorAll('a')];
+    const heads = links.map((a) => document.getElementById(decodeURIComponent(a.getAttribute('href').slice(1))));
+    let tick = false;
+    addEventListener('scroll', () => {
+      if (tick) return;
+      tick = true;
+      requestAnimationFrame(() => {
+        tick = false;
+        let cur = -1;
+        heads.forEach((h, i) => { if (h && h.getBoundingClientRect().top < 90) cur = i; });
+        links.forEach((a, i) => a.classList.toggle('active', i === cur));
+      });
+    }, { passive: true });
+  }
+
+  // 回到顶部：滚动超过 500px 出现
+  const up = mk('button', 'scroll-btn', '↑', '回到顶部', () => scrollTo({ top: 0, behavior: 'smooth' }));
+  addEventListener('scroll', () => { up.style.display = scrollY >= 500 ? 'block' : 'none'; }, { passive: true });
+})();

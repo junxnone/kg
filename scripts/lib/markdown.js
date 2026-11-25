@@ -20,7 +20,7 @@ export function createMarkdown() {
       }
     },
   });
-  md.use(anchor, { level: [1, 2, 3, 4] });
+  md.use(anchor, { level: [1, 2, 3, 4, 5, 6] });
 
   const fence = md.renderer.rules.fence;
   md.renderer.rules.fence = (tokens, idx, opts, env, self) => {
@@ -71,7 +71,7 @@ export function render(md, article, resolveLink, stats) {
   const env = { repo: article.repo, resolveLink, math: [], stats };
   let html = md.render(extractMath(article.body, env), env);
   html = html.replace(/KGMATH(\d+)END/g, (_, i) => env.math[+i]);
-  const toc = [...html.matchAll(/<h([234]) id="([^"]+)"[^>]*>([\s\S]*?)<\/h\1>/g)].map((m) => ({
+  const toc = [...html.matchAll(/<h([2-6]) id="([^"]+)"[^>]*>([\s\S]*?)<\/h\1>/g)].map((m) => ({
     level: +m[1],
     id: m[2],
     text: m[3].replace(/<[^>]+>/g, '').trim(),

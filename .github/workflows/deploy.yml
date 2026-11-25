@@ -7,26 +7,74 @@ on:
   repository_dispatch:
     types: [docs-updated]
   schedule:
-    - cron: '0 9 * * *'   # 各 wiki 的 autosidebar 在 08:00 跑完之后
+    - cron: '17 * * * *'   # 每小时一次；先比较源库 commit，没有变化就跳过构建和部署
 
 permissions:
   contents: read
   pages: write
   id-token: write
+  actions: write   # 仅用于下面的 keepalive 步骤
 
 concurrency:
   group: pages
   cancel-in-progress: false
 
+env:
+  REPOS: aiwiki xwiki linux opt math
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.check.outputs.changed }}
     steps:
       - uses: actions/checkout@v4
 
-      - name: Fetch source wikis (top-level docs/*.md only, skips docs/bk)
+      # 取五个源库当前 HEAD 的 commit，和线上站点 sources.json 里记录的上次部署版本比较。
+      # 只有定时触发才会跳过；push / 手动 / repository_dispatch 一律构建。
+      - name: Check source repos for changes
+        id: check
         run: |
-          for r in aiwiki xwiki linux opt math; do
+          : > sources.txt
+          for r in $REPOS; do
+            sha=$(git ls-remote "https://github.com/junxnone/$r.git" HEAD | cut -f1)
+            if [ -z "$sha" ]; then
+              echo "::warning::无法获取 $r 的 HEAD，跳过本次检查"
+              echo "changed=false" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            echo "$r $sha" >> sources.txt
+          done
+          jq -Rn '[inputs | split(" ") | {(.[0]): .[1]}] | add' < sources.txt > sources.json
+          cat sources.json
+
+          if [ "${{ github.event_name }}" != "schedule" ]; then
+            echo "触发方式 ${{ github.event_name }}：直接构建"
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if curl -fsS "https://junxnone.github.io/kg/sources.json?t=$(date +%s)" -o live.json \
+             && [ "$(jq -S . live.json)" = "$(jq -S . sources.json)" ]; then
+            echo "源库无变化，跳过构建"
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "源库有变化（或线上没有记录）：构建"
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      # 公开仓库 60 天没有活动会自动停用定时任务；重新 enable 一次可以重置计时
+      - name: Keep scheduled workflow alive
+        if: github.event_name == 'schedule'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow enable deploy.yml --repo "$GITHUB_REPOSITORY"
+
+      - name: Fetch source wikis (top-level docs/*.md only, skips docs/bk)
+        if: steps.check.outputs.changed == 'true'
+        run: |
+          for r in $REPOS; do
             git clone --depth 1 --filter=blob:none --no-checkout "https://github.com/junxnone/$r.git" "sources/$r"
             git -C "sources/$r" sparse-checkout set --no-cone '/docs/*.md'
             git -C "sources/$r" checkout
@@ -34,20 +82,29 @@ jobs:
           done
 
       - uses: actions/setup-node@v4
+        if: steps.check.outputs.changed == 'true'
         with:
           node-version: 20
 
-      - run: npm install --no-audit --no-fund
-      - run: node scripts/build.js --src sources --out dist
-      - run: npx pagefind --site dist
+      - if: steps.check.outputs.changed == 'true'
+        run: npm install --no-audit --no-fund
+      - if: steps.check.outputs.changed == 'true'
+        run: node scripts/build.js --src sources --out dist
+      - if: steps.check.outputs.changed == 'true'
+        run: cp sources.json dist/sources.json   # 记录这次部署对应的源库版本
+      - if: steps.check.outputs.changed == 'true'
+        run: npx pagefind --site dist
 
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
+      - if: steps.check.outputs.changed == 'true'
+        uses: actions/configure-pages@v5
+      - if: steps.check.outputs.changed == 'true'
+        uses: actions/upload-pages-artifact@v3
         with:
           path: dist
 
   deploy:
     needs: build
+    if: needs.build.outputs.changed == 'true'
     runs-on: ubuntu-latest
     environment:
       name: github-pages

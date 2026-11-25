@@ -13,7 +13,7 @@
 
 ## 构建
 
-CI（`.github/workflows/deploy.yml`）在 push / 每天 09:00 UTC / 手动 / `repository_dispatch: docs-updated` 时：
+CI（`.github/workflows/deploy.yml`）在 push / 手动 / `repository_dispatch: docs-updated` 时直接构建；另外每小时（xx:17 UTC）轮询一次，先比较五个源库的 HEAD 与线上 `sources.json` 记录的版本，没有变化就跳过：
 稀疏 clone 5 个源库的 `docs/*.md` → `node scripts/build.js` → `pagefind` → 部署 Pages。
 
 首次使用：仓库 Settings → Pages → Source 选 **GitHub Actions**。

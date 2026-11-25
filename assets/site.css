@@ -49,7 +49,7 @@ iframe.graph{width:100%;height:calc(100vh - 130px);border:1px solid var(--bd);bo
 main{padding:20px 32px 80px;max-width:960px;margin:0 auto}
 .graphpage main{max-width:none;padding:10px 16px}
 .with-side main{margin:0 0 0 300px;max-width:none;padding-left:32px}
-.with-side main>article{max-width:900px;margin:0 auto}
+.with-side main>article{max-width:none;width:100%}
 
 /* sidebar: fixed on the left, collapsible (docsify) */
 #side{position:fixed;top:49px;bottom:0;left:0;width:300px;overflow:auto;background:var(--side);border-right:1px solid var(--bd);transition:transform .25s;z-index:5}

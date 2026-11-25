@@ -48,7 +48,7 @@ for (const a of articles) {
   }
 }
 const tagFiles = new Map();
-const used = new Set();
+const used = new Set(['index']); // tags/index.html 留给标签云
 for (const t of tags.keys()) {
   let f = safeName(t), n = 2;
   while (used.has(f.toLowerCase())) f = `${safeName(t)}_${n++}`;

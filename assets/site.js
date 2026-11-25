@@ -9,28 +9,138 @@
     localStorage.setItem('kg-theme', t);
   });
 
-  // 侧边树：共用 tree.json，展开到当前文章
+  // 侧边树：共用 tree.json（缓存后同步渲染，无"加载中"闪烁）
+  // - 展开状态 / 滚动位置记在 sessionStorage，翻页后保持
+  // - 默认只展开当前文章所在的库和路径，其他库收起
+  // - 顶部过滤框：只显示匹配项并展开；◎ 按钮定位当前文章
   const side = $('#tree');
   if (side) {
+    const aside = $('#side');
+    const ss = {
+      get: (k) => { try { return sessionStorage.getItem(k); } catch { return null; } },
+      set: (k, v) => { try { sessionStorage.setItem(k, v); } catch {} },
+    };
     const cur = decodeURIComponent(location.pathname).replace(/^\//, '');
     const rel = (h) => decodeURIComponent(base.replace(/^\//, '') + h);
-    const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    const node = (n) => {
-      const href = n.h ? base + n.h : ''; // n.h 已是 percent-encoded
-      const isCur = n.h && rel(n.h) === cur;
-      const label = n.h ? `<a href="${href}"${isCur ? ' class="cur"' : ''}>${esc(n.n)}</a>` : `<span class="dir">${esc(n.n)}</span>`;
-      if (!n.c) return `<li>${label}</li>`;
-      const open = isCur || hasCur(n);
-      return `<li><details${open ? ' open' : ''}><summary>${label}${n.k ? ` <small>${n.k}</small>` : ''}</summary><ul>${n.c.map(node).join('')}</ul></details></li>`;
+    const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    const SEP = '\u0001';
+
+    let open = new Set(JSON.parse(ss.get('kg-open') || '[]'));
+    const curKeys = new Set();
+    const find = (n, path) => {
+      const p = path.concat(n.n);
+      let any = !!(n.h && rel(n.h) === cur);
+      for (const c of n.c || []) if (find(c, p)) any = true;
+      if (any) curKeys.add(p.join(SEP));
+      return any;
     };
-    const hasCur = (n) => (n.h && rel(n.h) === cur) || (n.c || []).some(hasCur);
-    fetch(base + 'tree.json')
-      .then((r) => r.json())
-      .then((t) => {
-        side.innerHTML = `<ul class="tree">${t.map(node).join('')}</ul>`;
-        $('a.cur', side)?.scrollIntoView({ block: 'center' });
+
+    const node = (n, path) => {
+      const p = path.concat(n.n);
+      const isCur = n.h && rel(n.h) === cur;
+      const label = n.h ? `<a href="${base + n.h}"${isCur ? ' class="cur"' : ''}>${esc(n.n)}</a>` : `<span class="dir">${esc(n.n)}</span>`;
+      const t = esc(n.n.toLowerCase());
+      if (!n.c) return `<li data-t="${t}">${label}</li>`;
+      return `<li data-t="${t}"><details data-k="${esc(p.join(SEP))}"><summary>${label}${n.k ? ` <small>${n.k}</small>` : ''}</summary><ul>${n.c.map((c) => node(c, p)).join('')}</ul></details></li>`;
+    };
+
+    const applyOpen = () => side.querySelectorAll('details').forEach((d) => { d.open = open.has(d.dataset.k) || curKeys.has(d.dataset.k); });
+    const saveOpen = () => ss.set('kg-open', JSON.stringify([...open]));
+
+    const render = (t) => {
+      curKeys.clear();
+      t.forEach((r) => find(r, []));
+      side.innerHTML = `<ul class="tree">${t.map((r) => node(r, [])).join('')}</ul><div class="tree-empty" hidden>没有匹配的文章</div>`;
+      applyOpen();
+      filter();
+      const lb = $('#tree-locate');
+      if (lb) lb.hidden = !$('a.cur', side);
+    };
+
+    // 展开状态：用户点击摘要后记录（程序性展开不会写入）
+    side.addEventListener('click', (e) => {
+      const s = e.target.closest('summary');
+      if (!s || e.target.closest('a')) return;
+      setTimeout(() => {
+        const d = s.parentElement;
+        if (filterBox.value.trim()) return; // 过滤期间的展开不记录
+        d.open ? open.add(d.dataset.k) : open.delete(d.dataset.k);
+        saveOpen();
+      }, 0);
+    });
+
+    // 过滤
+    const filterBox = $('#tree-filter');
+    let q = '';
+    const show = (li, forced) => {
+      const own = li.dataset.t.includes(q);
+      const d = li.querySelector(':scope > details');
+      let child = false;
+      if (d) for (const c of d.querySelectorAll(':scope > ul > li')) if (show(c, forced || own)) child = true;
+      const vis = forced || own || child;
+      li.hidden = !vis;
+      if (d && q) d.open = child; // 子孙命中则展开；仅自身命中保持收起
+      return vis;
+    };
+    function filter() {
+      q = (filterBox?.value || '').trim().toLowerCase();
+      const top = side.querySelectorAll(':scope > ul > li');
+      if (!q) {
+        side.querySelectorAll('li[hidden]').forEach((li) => (li.hidden = false));
+        applyOpen();
+        $('.tree-empty', side).hidden = true;
+        return;
+      }
+      let any = false;
+      top.forEach((li) => { if (show(li, false)) any = true; });
+      $('.tree-empty', side).hidden = any;
+    }
+    let ft;
+    filterBox?.addEventListener('input', () => { clearTimeout(ft); ft = setTimeout(filter, 120); });
+    filterBox?.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') { filterBox.value = ''; filter(); }
+    });
+
+    // 定位当前文章
+    const locate = () => {
+      if (filterBox) { filterBox.value = ''; filter(); }
+      const a = $('a.cur', side);
+      if (!a) return;
+      a.scrollIntoView({ block: 'center' });
+      a.classList.add('flash');
+      setTimeout(() => a.classList.remove('flash'), 1200);
+    };
+    const locBtn = $('#tree-locate');
+    if (locBtn) {
+      locBtn.addEventListener('click', locate);
+    }
+
+    // 滚动位置：保存 / 恢复（当前文章不在可视区时再居中）
+    let st;
+    aside.addEventListener('scroll', () => { clearTimeout(st); st = setTimeout(() => ss.set('kg-scroll', aside.scrollTop), 100); }, { passive: true });
+    const restoreScroll = () => {
+      const y = +ss.get('kg-scroll');
+      if (y) aside.scrollTop = y;
+      const a = $('a.cur', side);
+      if (a) {
+        const r = a.getBoundingClientRect(), b = aside.getBoundingClientRect();
+        if (r.top < b.top || r.bottom > b.bottom) a.scrollIntoView({ block: 'center' });
+      }
+    };
+
+    // 缓存：命中则同步渲染，再后台校验更新
+    const cached = ss.get('kg-tree');
+    const key = base + 'tree.json';
+    if (cached) { try { render(JSON.parse(cached)); restoreScroll(); } catch {} }
+    fetch(key)
+      .then((r) => r.text())
+      .then((txt) => {
+        if (txt === cached) return;
+        ss.set('kg-tree', txt);
+        render(JSON.parse(txt));
+        restoreScroll();
       })
-      .catch(() => (side.textContent = '目录加载失败'));
+      .catch(() => { if (!cached) side.textContent = '目录加载失败'; });
   }
 
   // 标签页过滤
@@ -102,6 +212,10 @@
       if (e.target.closest('#toc-toggle')) body.classList.remove('kg-open');
     });
     addEventListener('resize', () => { if (!narrow()) body.classList.remove('kg-open'); });
+    document.addEventListener('click', (e) => {
+      if (body.classList.contains('kg-open') && !e.target.closest('#side, #kg-toggle')) body.classList.remove('kg-open');
+    });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') body.classList.remove('kg-open'); });
   }
 
   // TOC：宽屏默认展开，窄屏收起

@@ -37,7 +37,7 @@ ${head}
   <form class="q" action="${b}search.html"><input name="q" type="search" placeholder="搜索全部文章…" aria-label="搜索"></form>
 </header>
 <div class="wrap${sidebar ? ' with-side' : ''}">
-${sidebar ? '<aside id="side"><div id="tree" class="side-inner">加载中…</div></aside>' : ''}
+${sidebar ? '<aside id="side"><div class="side-tools"><input id="tree-filter" type="search" placeholder="过滤文章…" autocomplete="off" aria-label="过滤文章"><button id="tree-locate" type="button" title="定位当前文章" aria-label="定位当前文章">◎</button></div><div id="tree" class="side-inner">加载中…</div></aside>' : ''}
 <main>
 ${body}
 </main>

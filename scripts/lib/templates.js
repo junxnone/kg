@@ -26,6 +26,7 @@ ${head}
 <body data-base="${b}" class="${cls}">
 <header class="top">
   <a class="brand" href="${b}">${esc(cfg.title)}</a>
+  <button id="rand" type="button" title="随机打开一篇文章" aria-label="随机文章">🎲</button>
   <nav>
     <a href="${b}tree.html">🌲 树形</a>
     <a href="${b}tags/">🏷️ 标签</a>

@@ -162,3 +162,24 @@
 if ('serviceWorker' in navigator) {
   addEventListener('load', () => navigator.serviceWorker.register((document.body.dataset.base || '/') + 'sw.js').catch(() => {}));
 }
+
+// ---- 随机打开一篇文章 ----
+(() => {
+  const btn = document.getElementById('rand');
+  if (!btn) return;
+  const base = document.body.dataset.base || '/';
+  let list = null;
+  btn.addEventListener('click', async () => {
+    btn.disabled = true;
+    try {
+      list = list || (await (await fetch(base + 'random.json')).json());
+      const cur = decodeURIComponent(location.pathname);
+      let h;
+      do h = list[Math.floor(Math.random() * list.length)];
+      while (list.length > 1 && decodeURIComponent(base + h) === cur);
+      location.href = base + h;
+    } catch {
+      btn.disabled = false;
+    }
+  });
+})();

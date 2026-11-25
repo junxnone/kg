@@ -91,6 +91,7 @@ for (const a of articles) {
 // 4. 树 / 标签 / 首页 / 搜索 / 图谱
 const roots = buildTree(cfg, articles);
 write('tree.json', JSON.stringify(treeJson(cfg, roots)));
+write('random.json', JSON.stringify(articles.map((a) => `${a.repo}/${encodeURIComponent(a.file)}.html`)));
 write('tree.html', T.treePage(cfg, treeHtml(cfg, roots)));
 write('kg.json', genKgJson(cfg, roots));
 

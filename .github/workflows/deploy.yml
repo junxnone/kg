@@ -1,0 +1,57 @@
+name: Deploy site
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  repository_dispatch:
+    types: [docs-updated]
+  schedule:
+    - cron: '0 9 * * *'   # 各 wiki 的 autosidebar 在 08:00 跑完之后
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch source wikis (top-level docs/*.md only, skips docs/bk)
+        run: |
+          for r in aiwiki xwiki linux opt math; do
+            git clone --depth 1 --filter=blob:none --no-checkout "https://github.com/junxnone/$r.git" "sources/$r"
+            git -C "sources/$r" sparse-checkout set --no-cone '/docs/*.md'
+            git -C "sources/$r" checkout
+            echo "$r: $(ls sources/$r/docs/*.md | wc -l) md"
+          done
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - run: npm install --no-audit --no-fund
+      - run: node scripts/build.js --src sources --out dist
+      - run: npx pagefind --site dist
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -36,11 +36,25 @@ if (!articles.length) {
   process.exit(1);
 }
 
-// 2. 标签 = Labels ∪ 路径各层级（跨库同名合并）
+// 2. 标签 = Labels ∪ 路径各层级；大小写不同的合并（取出现最多的写法），丢弃单个字母/数字的标签
+const variants = new Map(); // lower → Map(写法 → 次数)
+const raw = (a) => [...new Set([...a.labels, ...a.segs])];
+for (const a of articles) {
+  for (const t of raw(a)) {
+    const k = t.toLowerCase();
+    if (!variants.has(k)) variants.set(k, new Map());
+    variants.get(k).set(t, (variants.get(k).get(t) || 0) + 1);
+  }
+}
+const canon = new Map();
+for (const [k, vs] of variants) {
+  if (/^[a-z0-9]$/.test(k)) continue;
+  canon.set(k, [...vs].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0][0]);
+}
 const tags = new Map();
 const tagsOf = new Map();
 for (const a of articles) {
-  const ts = [...new Set([...a.labels, ...a.segs])];
+  const ts = [...new Set(raw(a).map((t) => canon.get(t.toLowerCase())).filter(Boolean))];
   tagsOf.set(a, ts);
   for (const t of ts) {
     if (!tags.has(t)) tags.set(t, []);

@@ -69,7 +69,6 @@ aside.toc-nav{position:fixed;right:60px;bottom:0;width:max-content;min-width:100
 .page_toc a{color:var(--sub)}.page_toc a.active{color:var(--accent);font-weight:700}
 .page_toc .l3{padding-left:10px}.page_toc .l4{padding-left:20px}.page_toc .l5{padding-left:30px}.page_toc .l6{padding-left:40px}
 body.toc-collapsed aside.toc-nav,body.toc-empty aside.toc-nav,body.toc-empty #toc-toggle{display:none}
-@media(min-width:1300px){body:not(.toc-collapsed):not(.toc-empty) .with-side main{padding-right:calc(var(--toc-w,250px) + 70px)}}
 @media(max-width:800px){.with-side main{margin-left:0}#side{width:80%}.top nav{display:none}main{padding:16px}}
 
 /* floating buttons + TOC: transparent background */

@@ -98,7 +98,6 @@
     const apply = () => {
       const s = store.get('toc-collapsed');
       body.classList.toggle('toc-collapsed', s === null ? innerWidth < 1300 : s === '1');
-      if (!body.classList.contains('toc-collapsed')) document.documentElement.style.setProperty('--toc-w', Math.ceil(toc.getBoundingClientRect().width) + 'px');
     };
     mk('button', 'toc-toggle', 'TOC', '显示/隐藏目录', () => {
       store.set('toc-collapsed', body.classList.contains('toc-collapsed') ? '0' : '1');

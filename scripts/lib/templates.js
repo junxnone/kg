@@ -92,7 +92,7 @@ export function homePage(cfg, roots, counts) {
 </div></section>
 <form class="hero-search" action="${cfg.basePath}search.html" role="search">
   <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M10.5 18a7.5 7.5 0 1 1 5.3-2.2L21 21"/></svg>
-  <input name="q" type="search" placeholder="搜索全部文章…" aria-label="搜索全部文章" autocomplete="off" autofocus>
+  <input name="q" type="search" placeholder="搜索全部文章…" aria-label="搜索全部文章" autocomplete="off">
 </form>
 <div class="cards">${cards}</div>
 `;

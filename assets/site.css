@@ -175,10 +175,7 @@ aside.toc-nav{background:var(--bg);border-radius:6px;box-shadow:0 1px 6px rgba(0
 .note-item time{display:block;color:var(--sub);font-size:.75em}
 
 /* home: Google-style search box */
-.hero-notes{display:flex;justify-content:center;margin:18px 0 -6px}
-.hero-notes a{padding:5px 16px;border:1px solid var(--bd);border-radius:16px;color:var(--fg);font-size:.9em}
-.hero-notes a:hover{border-color:var(--accent);color:var(--accent);text-decoration:none}
-.hero-search{display:flex;align-items:center;gap:12px;max-width:640px;margin:18px auto 28px;padding:0 20px;height:48px;border:1px solid var(--bd);border-radius:24px;background:var(--bg);color:var(--sub);transition:box-shadow .15s,border-color .15s}
+.hero-search{display:flex;align-items:center;gap:16px;box-sizing:border-box;width:100%;margin:18px 0 28px;padding:0 28px;height:72px;border:1px solid var(--bd);border-radius:36px;background:var(--bg);color:var(--sub);transition:box-shadow .15s,border-color .15s}
 .hero-search:hover,.hero-search:focus-within{border-color:transparent;box-shadow:0 1px 6px rgba(32,33,36,.28)}
-.hero-search input{flex:1;min-width:0;height:100%;padding:0;border:0;outline:0;background:transparent;color:var(--fg);font:inherit;font-size:1.05em;-webkit-appearance:none;appearance:none}
+.hero-search input{flex:1;min-width:0;height:100%;padding:0;border:0;outline:0;background:transparent;color:var(--fg);font:inherit;font-size:1.3em;-webkit-appearance:none;appearance:none}
 .hero-search input::-webkit-search-cancel-button{cursor:pointer}

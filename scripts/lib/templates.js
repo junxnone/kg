@@ -31,6 +31,7 @@ ${head}
     <a href="${b}tree.html">🌲 树形</a>
     <a href="${b}tags/">🏷️ 标签</a>
     <a href="${b}recent.html">🆕 最近</a>
+    <a href="${b}notes.html">📝 笔记</a>
     <a href="${b}search.html">🔍 搜索</a>
     <a href="${b}graph.html">🧊 3D</a>
   </nav>
@@ -149,6 +150,12 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 </script>`;
   return layout(cfg, { title: '搜索', body, head });
+}
+
+// 笔记汇总页：内容由 site.js 从 localStorage 渲染
+export function notesPage(cfg) {
+  const body = `<h1>📝 笔记</h1><p class="sub">笔记只保存在当前浏览器（本机），点标题回到对应文章；建议定期导出备份。</p><div id="notes-root"></div>`;
+  return layout(cfg, { title: '笔记', body });
 }
 
 export function graphPage(cfg) {

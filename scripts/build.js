@@ -101,6 +101,7 @@ for (const [t, arts] of tags) write(`tags/${tagFiles.get(t)}.html`, T.tagPage(cf
 write('index.html', T.homePage(cfg, roots, counts));
 write('recent.html', T.recentPage(cfg, articles));
 write('search.html', T.searchPage(cfg));
+write('notes.html', T.notesPage(cfg));
 write('graph.html', T.graphPage(cfg));
 write('404.html', T.notFoundPage(cfg));
 write('.nojekyll', '');

@@ -272,6 +272,156 @@
   if (location.hash === '#upd') show('upd');
 })();
 
+// ---- 本地笔记：全站一份，存 localStorage（键 kg-notes）；每条笔记记录来源文章并链接回去 ----
+// 文章页：右下 ✎ 快速记一条；笔记汇总页 notes.html：查看 / 搜索 / 编辑 / 删除 / 勾选清单 / 导出导入
+(() => {
+  const KEY = 'kg-notes';
+  const load = () => { try { return JSON.parse(localStorage.getItem(KEY)) || []; } catch { return []; } };
+  const save = (l) => { try { localStorage.setItem(KEY, JSON.stringify(l)); } catch { alert('保存失败：浏览器存储不可用或已满'); } };
+  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  const TODO = /^(\s*[-*]\s+)\[([ xX])\]\s?(.*)$/;
+  const base = document.body.dataset.base || '/';
+  const when = (t) => new Date(t).toLocaleString('zh-CN', { hour12: false }).slice(0, 16);
+  const body = (text, id) => text.split('\n').map((l, i) => {
+    const m = l.match(TODO);
+    if (m) return `<label class="todo${m[2] === ' ' ? '' : ' done'}"><input type="checkbox" data-id="${id}" data-i="${i}"${m[2] === ' ' ? '' : ' checked'}><span>${esc(m[3])}</span></label>`;
+    return l.trim() ? `<div>${esc(l)}</div>` : '<br>';
+  }).join('');
+
+  // ---- 文章页：快速记笔记 ----
+  if (document.body.classList.contains('article')) {
+    const url = decodeURIComponent(location.pathname);
+    const title = document.title.split(' · ')[0];
+    const btn = Object.assign(document.createElement('button'), { id: 'note-btn', type: 'button', textContent: '✎', title: '给这篇文章记笔记' });
+    const panel = document.createElement('div');
+    panel.id = 'note-panel';
+    panel.hidden = true;
+    panel.innerHTML = `<div class="note-bar"><b>记笔记</b><span class="note-tip"></span><a href="${base}notes.html">全部笔记 →</a><button type="button" data-a="x" title="关闭">×</button></div>
+<div class="note-mine"></div>
+<textarea placeholder="记点什么…  用 “- [ ] 事项” 写待办清单（Ctrl+Enter 保存）" spellcheck="false"></textarea>
+<div class="note-foot"><button type="button" data-a="save">保存</button></div>`;
+    document.body.append(btn, panel);
+    const ta = panel.querySelector('textarea'), tip = panel.querySelector('.note-tip');
+    const mine = panel.querySelector('.note-mine');
+    const refresh = () => {
+      const l = load().filter((n) => n.url === url).sort((a, b) => b.upd - a.upd);
+      btn.classList.toggle('has', l.length > 0);
+      tip.textContent = l.length ? `本文 ${l.length} 条` : '';
+      mine.hidden = !l.length;
+      mine.innerHTML = l.map((n) => `<div class="note-item"><time>${when(n.upd)}</time>${body(n.text, n.id)}</div>`).join('');
+    };
+    mine.addEventListener('change', (e) => {
+      const { id, i } = e.target.dataset;
+      if (i === undefined) return;
+      const all = load(), n = all.find((x) => x.id === id);
+      if (!n) return;
+      const lines = n.text.split('\n');
+      lines[i] = lines[i].replace(TODO, (_, a, __, t) => `${a}[${e.target.checked ? 'x' : ' '}] ${t}`);
+      n.text = lines.join('\n');
+      save(all);
+      refresh();
+    });
+    const add = () => {
+      const text = ta.value.trim();
+      if (!text) return;
+      const now = Date.now();
+      save(load().concat({ id: now.toString(36) + Math.random().toString(36).slice(2, 6), url, title, text, ts: now, upd: now }));
+      ta.value = '';
+      refresh();
+      tip.textContent = '已保存 ✓';
+    };
+    btn.addEventListener('click', () => { panel.hidden = !panel.hidden; if (!panel.hidden) ta.focus(); });
+    panel.addEventListener('click', (e) => {
+      const a = e.target.dataset.a;
+      if (a === 'x') panel.hidden = true;
+      else if (a === 'save') add();
+    });
+    ta.addEventListener('keydown', (e) => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) add(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !panel.hidden) panel.hidden = true; });
+    refresh();
+  }
+
+  // ---- 笔记汇总页 ----
+  const root = document.getElementById('notes-root');
+  if (!root) return;
+  root.innerHTML = `<div class="notes-tools"><input id="notes-q" type="search" placeholder="搜索笔记 / 文章标题…" autocomplete="off">
+<button type="button" data-a="exp">导出</button><button type="button" data-a="imp">导入</button><input type="file" accept=".json,application/json" hidden></div>
+<div id="notes-list"></div>`;
+  const list = root.querySelector('#notes-list'), q = root.querySelector('#notes-q'), file = root.querySelector('input[type=file]');
+  let editId = null;
+
+  const draw = () => {
+    const kw = q.value.trim().toLowerCase();
+    const all = load().sort((a, b) => b.upd - a.upd);
+    const shown = all.filter((n) => !kw || (n.text + ' ' + n.title).toLowerCase().includes(kw));
+    list.innerHTML = shown.map((n) => `<section class="note" data-id="${n.id}">
+<div class="note-head"><a href="${esc(n.url)}">${esc(n.title)}</a><time>${when(n.upd)}</time>
+<span><button type="button" data-a="edit">编辑</button><button type="button" data-a="del">删除</button></span></div>
+${editId === n.id ? `<textarea>${esc(n.text)}</textarea><div class="note-foot"><button type="button" data-a="ok">保存</button><button type="button" data-a="cancel">取消</button></div>` : `<div class="note-body">${body(n.text, n.id)}</div>`}</section>`).join('')
+      || `<p class="sub">${all.length ? '没有匹配的笔记。' : '还没有笔记。打开任意文章，点右下角 ✎ 记一条。'}</p>`;
+  };
+
+  list.addEventListener('change', (e) => {
+    const { id, i } = e.target.dataset;
+    if (i === undefined) return;
+    const all = load(), n = all.find((x) => x.id === id);
+    if (!n) return;
+    const lines = n.text.split('\n');
+    lines[i] = lines[i].replace(TODO, (_, a, __, t) => `${a}[${e.target.checked ? 'x' : ' '}] ${t}`);
+    n.text = lines.join('\n');
+    save(all);
+    draw();
+  });
+  list.addEventListener('click', (e) => {
+    const a = e.target.dataset.a;
+    const sec = e.target.closest('.note');
+    if (!a || !sec) return;
+    const id = sec.dataset.id;
+    if (a === 'edit') { editId = id; draw(); list.querySelector('.note textarea')?.focus(); }
+    else if (a === 'cancel') { editId = null; draw(); }
+    else if (a === 'ok') {
+      const text = sec.querySelector('textarea').value.trim();
+      const all = load(), n = all.find((x) => x.id === id);
+      if (n && text) { n.text = text; n.upd = Date.now(); save(all); }
+      editId = null;
+      draw();
+    } else if (a === 'del' && confirm('删除这条笔记？')) { save(load().filter((x) => x.id !== id)); draw(); }
+  });
+  q.addEventListener('input', draw);
+  root.querySelector('.notes-tools').addEventListener('click', (e) => {
+    const a = e.target.dataset.a;
+    if (a === 'imp') file.click();
+    else if (a === 'exp') {
+      const all = load();
+      if (!all.length) return alert('还没有任何笔记');
+      const link = Object.assign(document.createElement('a'), {
+        href: URL.createObjectURL(new Blob([JSON.stringify(all, null, 2)], { type: 'application/json' })),
+        download: `kg-notes-${new Date().toISOString().slice(0, 10)}.json`,
+      });
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+    }
+  });
+  file.addEventListener('change', async () => {
+    try {
+      const inc = JSON.parse(await file.files[0].text());
+      if (!Array.isArray(inc)) throw 0;
+      const all = load(), byId = new Map(all.map((n) => [n.id, n]));
+      let n = 0;
+      for (const x of inc) {
+        if (!x || typeof x.id !== 'string' || typeof x.text !== 'string' || typeof x.url !== 'string') continue;
+        const old = byId.get(x.id);
+        if (!old) { all.push(x); n++; } else if ((x.upd || 0) > old.upd) { Object.assign(old, x); n++; }
+      }
+      save(all);
+      alert(`已导入 / 更新 ${n} 条笔记`);
+      draw();
+    } catch { alert('导入失败：不是有效的笔记 JSON'); }
+    file.value = '';
+  });
+  draw();
+})();
+
 // ---- PWA：注册 service worker（"添加到主屏幕 / 安装应用"需要）----
 if ('serviceWorker' in navigator) {
   addEventListener('load', () => navigator.serviceWorker.register((document.body.dataset.base || '/') + 'sw.js').catch(() => {}));

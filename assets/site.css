@@ -146,3 +146,29 @@ aside.toc-nav{background:var(--bg);border-radius:6px;box-shadow:0 1px 6px rgba(0
 .tree a.flash{animation:kgflash 1.2s ease-out}
 @keyframes kgflash{0%,40%{background:rgba(250,204,21,.6)}100%{background:var(--chip)}}
 @media(max-width:799px){#side .side-tools{background:var(--bg)}}
+
+/* local notes */
+#note-btn{position:fixed;right:15px;bottom:150px;width:35px;height:35px;padding:0;z-index:20;border:2px solid var(--fg);border-radius:4px;color:var(--fg);background:transparent;cursor:pointer;font:bold 16px/30px sans-serif;text-align:center}
+#note-btn.has{color:var(--accent);border-color:var(--accent)}
+#note-panel{position:fixed;right:60px;bottom:15px;width:min(340px,calc(100vw - 75px));display:flex;flex-direction:column;z-index:25;background:var(--bg);border:1px solid var(--bd);border-radius:8px;box-shadow:0 2px 12px rgba(0,0,0,.25);font-size:.9em}
+#note-panel[hidden]{display:none}
+.note-bar{display:flex;align-items:center;gap:8px;padding:6px 8px;border-bottom:1px solid var(--bd)}
+.note-tip{flex:1;color:var(--sub);font-size:.8em}
+.note-bar button,.note-foot button,.notes-tools button,.note-head button{padding:2px 10px;border:1px solid var(--bd);border-radius:4px;background:transparent;color:var(--fg);cursor:pointer;font-size:.85em}
+.note-bar button:hover,.note-foot button:hover,.notes-tools button:hover,.note-head button:hover{border-color:var(--accent);color:var(--accent)}
+#note-panel textarea,.note textarea{display:block;box-sizing:border-box;width:100%;min-height:140px;resize:vertical;margin:0;padding:8px;border:0;background:var(--bg);color:var(--fg);font:inherit;line-height:1.5;outline:none}
+.note-foot{display:flex;gap:6px;justify-content:flex-end;padding:6px 8px;border-top:1px solid var(--bd)}
+.notes-tools{display:flex;gap:8px;align-items:center;margin:12px 0}
+.notes-tools input[type=search]{flex:1;max-width:360px;padding:5px 10px;border:1px solid var(--bd);border-radius:6px;background:var(--bg);color:var(--fg)}
+.note{border:1px solid var(--bd);border-radius:8px;margin:0 0 12px;overflow:hidden}
+.note-head{display:flex;gap:10px;align-items:center;padding:6px 10px;border-bottom:1px solid var(--bd);background:var(--side)}
+.note-head a{font-weight:700}.note-head time{flex:1;color:var(--sub);font-size:.8em}.note-head span{display:flex;gap:6px}
+.note .note-body{padding:8px 10px;line-height:1.6;word-break:break-word}
+.todo{display:flex;gap:6px;align-items:flex-start;cursor:pointer}
+.todo input{margin-top:.5em}
+.todo.done span{color:var(--sub);text-decoration:line-through}
+@media(max-width:799px){#note-btn{bottom:195px}}
+.note-mine{max-height:40vh;overflow:auto;padding:4px 10px;border-bottom:1px solid var(--bd);line-height:1.6;word-break:break-word}
+.note-mine[hidden]{display:none}
+.note-item{padding:6px 0;border-bottom:1px dashed var(--bd)}.note-item:last-child{border-bottom:0}
+.note-item time{display:block;color:var(--sub);font-size:.75em}

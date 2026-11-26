@@ -173,7 +173,7 @@ aside.toc-nav{background:var(--bg);border-radius:6px;box-shadow:0 1px 6px rgba(0
 .dice .f5{transform:rotateY(-90deg) translateZ(48px)}
 .dice .f3{transform:rotateX(90deg) translateZ(48px)}
 .dice .f4{transform:rotateX(-90deg) translateZ(48px)}
-@keyframes dice-spin{from{transform:rotateX(0) rotateY(0) rotateZ(0) scale(.6)}60%{transform:rotateX(540deg) rotateY(720deg) rotateZ(180deg) scale(1.15)}to{transform:rotateX(720deg) rotateY(1080deg) rotateZ(360deg) scale(1)}}
+@keyframes dice-spin{from{transform:rotateX(0) rotateY(0) rotateZ(0) scale(.6)}60%{transform:rotateX(calc(var(--rx,720deg)*.75)) rotateY(calc(var(--ry,1080deg)*.75)) rotateZ(180deg) scale(1.15)}to{transform:rotateX(var(--rx,720deg)) rotateY(var(--ry,1080deg)) rotateZ(360deg) scale(1)}}
 @keyframes dice-in{from{opacity:0}to{opacity:1}}
 @media(prefers-reduced-motion:reduce){.dice{animation:none}}
 #note-pop{position:fixed;z-index:30;padding:9px 16px;border:0;border-radius:8px;background:var(--accent);color:#fff;font:inherit;font-size:.95em;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.3)}

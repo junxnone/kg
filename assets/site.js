@@ -472,29 +472,42 @@ if ('serviceWorker' in navigator) {
 }
 
 // ---- 随机打开一篇文章 ----
+// 时间 = max(动画最短时长, random.json 加载完成) → 然后跳转；文章页本身的加载时间不在此内，浮层会一直盖到新页面出现
 (() => {
   const btn = document.getElementById('rand');
   if (!btn) return;
   const base = document.body.dataset.base || '/';
-  let list = null;
+  const MIN_MS = matchMedia('(prefers-reduced-motion: reduce)').matches ? 300 : 1300;
+  const load = () => (load.p = load.p || fetch(base + 'random.json').then((r) => r.json()).catch((e) => { load.p = null; throw e; }));
+  // 提前在空闲时 / 鼠标移到按钮上时预取列表，点击时通常已就绪
+  btn.addEventListener('pointerenter', () => load().catch(() => {}), { once: true });
+  (window.requestIdleCallback || setTimeout)(() => load().catch(() => {}));
+
   btn.addEventListener('click', async () => {
     btn.disabled = true;
+    // 先立刻显示骰子，再等列表
+    const ov = document.createElement('div');
+    ov.id = 'dice-overlay';
+    ov.innerHTML = `<div class="dice">${['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'].map((f, i) => `<i class="f${i + 1}">${f}</i>`).join('')}</div><p>随机抽取一篇…</p>`;
+    document.body.append(ov);
+    // 终点朝向随机：先转到"目标点数朝前"的角度，再加整圈（整圈不改变朝向）
+    const turn = (n) => 360 * (n + Math.floor(Math.random() * 2));
+    const face = Math.floor(Math.random() * 6) + 1;
+    const [bx, by] = { 1: [0, 0], 2: [0, -90], 3: [-90, 0], 4: [90, 0], 5: [0, 90], 6: [0, 180] }[face];
+    const dice = ov.querySelector('.dice');
+    dice.style.setProperty('--rx', bx + turn(2) + 'deg');
+    dice.style.setProperty('--ry', by + turn(3) + 'deg');
+    // 从缓存（bfcache）返回时清掉浮层并恢复按钮
+    addEventListener('pageshow', (e) => { if (e.persisted) { ov.remove(); btn.disabled = false; } }, { once: true });
     try {
-      list = list || (await (await fetch(base + 'random.json')).json());
+      const [list] = await Promise.all([load(), new Promise((r) => setTimeout(r, MIN_MS))]);
       const cur = decodeURIComponent(location.pathname);
       let h;
       do h = list[Math.floor(Math.random() * list.length)];
       while (list.length > 1 && decodeURIComponent(base + h) === cur);
-      // 先选定文章，再放一段骰子旋转动画，结束后跳转（减少动态效果偏好下缩短）
-      const ov = document.createElement('div');
-      ov.id = 'dice-overlay';
-      ov.innerHTML = `<div class="dice">${['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'].map((f, i) => `<i class="f${i + 1}">${f}</i>`).join('')}</div><p>随机抽取一篇…</p>`;
-      document.body.append(ov);
-      const ms = matchMedia('(prefers-reduced-motion: reduce)').matches ? 300 : 1300;
-      setTimeout(() => { location.href = base + h; }, ms);
-      // 从缓存（bfcache）返回时清掉浮层并恢复按钮
-      addEventListener('pageshow', (e) => { if (e.persisted) { ov.remove(); btn.disabled = false; } }, { once: true });
+      location.href = base + h;
     } catch {
+      ov.remove();
       btn.disabled = false;
     }
   });

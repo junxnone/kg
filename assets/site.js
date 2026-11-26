@@ -349,7 +349,8 @@
   // ---- 笔记汇总页 ----
   const root = document.getElementById('notes-root');
   if (!root) return;
-  root.innerHTML = `<div class="notes-tools"><input id="notes-q" type="search" placeholder="搜索笔记 / 文章标题…" autocomplete="off">
+  root.innerHTML = `<form class="notes-new"><input id="notes-new" placeholder="新建待办（不关联文章），回车添加…" autocomplete="off"><button type="submit">添加</button></form>
+<div class="notes-tools"><input id="notes-q" type="search" placeholder="搜索笔记 / 文章标题…" autocomplete="off">
 <button type="button" data-a="exp">导出</button><button type="button" data-a="imp">导入</button><input type="file" accept=".json,application/json" hidden></div>
 <div id="notes-list"></div>`;
   const list = root.querySelector('#notes-list'), q = root.querySelector('#notes-q'), file = root.querySelector('input[type=file]');
@@ -360,12 +361,22 @@
     const all = load().sort((a, b) => b.upd - a.upd);
     const shown = all.filter((n) => !kw || (n.text + ' ' + n.title).toLowerCase().includes(kw));
     list.innerHTML = shown.map((n) => `<section class="note" data-id="${n.id}">
-<div class="note-head"><a href="${esc(n.url)}">${esc(n.title)}</a><time>${when(n.upd)}</time>
+<div class="note-head">${n.url ? `<a href="${esc(n.url)}">${esc(n.title)}</a>` : '<span class="plain">独立待办</span>'}<time>${when(n.upd)}</time>
 <span><button type="button" data-a="edit">编辑</button><button type="button" data-a="del">删除</button></span></div>
 ${editId === n.id ? `<textarea>${esc(n.text)}</textarea><div class="note-foot"><button type="button" data-a="ok">保存</button><button type="button" data-a="cancel">取消</button></div>` : `<div class="note-body">${body(n)}</div>`}</section>`).join('')
-      || `<p class="sub">${all.length ? '没有匹配的笔记。' : '还没有笔记。打开任意文章，点右下角 ✎ 记一条。'}</p>`;
+      || `<p class="sub">${all.length ? '没有匹配的笔记。' : '还没有笔记。在上面新建一条待办，或打开任意文章，点右下角 ✎ 记一条。'}</p>`;
   };
 
+  root.querySelector('.notes-new').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const inp = root.querySelector('#notes-new'), text = inp.value.trim();
+    if (!text) return;
+    const now = Date.now();
+    save(load().concat({ id: now.toString(36) + Math.random().toString(36).slice(2, 6), url: '', title: '', text, done: false, ts: now, upd: now }));
+    inp.value = '';
+    q.value = '';
+    draw();
+  });
   list.addEventListener('change', (e) => { if (toggle(e)) draw(); });
   list.addEventListener('click', (e) => {
     const a = e.target.dataset.a;

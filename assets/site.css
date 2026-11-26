@@ -166,6 +166,7 @@ aside.toc-nav{background:var(--bg);border-radius:6px;box-shadow:0 1px 6px rgba(0
 .note .note-body{padding:8px 10px;line-height:1.6;word-break:break-word}
 .todo{display:flex;gap:6px;align-items:flex-start;cursor:pointer}
 .todo input{margin-top:.5em}
+.todo span{white-space:pre-wrap}
 .todo.done span{color:var(--sub);text-decoration:line-through}
 @media(max-width:799px){#note-btn{bottom:195px}}
 .note-mine{max-height:40vh;overflow:auto;padding:4px 10px;border-bottom:1px solid var(--bd);line-height:1.6;word-break:break-word}

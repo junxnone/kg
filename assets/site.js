@@ -276,17 +276,32 @@
 // 文章页：右下 ✎ 快速记一条；笔记汇总页 notes.html：查看 / 搜索 / 编辑 / 删除 / 勾选清单 / 导出导入
 (() => {
   const KEY = 'kg-notes';
-  const load = () => { try { return JSON.parse(localStorage.getItem(KEY)) || []; } catch { return []; } };
+  // 每条笔记是一个待办项 {id,url,title,text,done,ts,upd}；旧版 "- [ ] 文字" 格式在读取时迁移
+  const LEGACY = /^\s*[-*]\s+\[([ xX])\]\s?/;
+  const load = () => {
+    let l;
+    try { l = JSON.parse(localStorage.getItem(KEY)); } catch { l = null; }
+    return (Array.isArray(l) ? l : []).map((n) => {
+      if (typeof n.done === 'boolean') return n;
+      const m = n.text.match(LEGACY);
+      return { ...n, done: !!m && m[1] !== ' ', text: n.text.replace(LEGACY, '') };
+    });
+  };
   const save = (l) => { try { localStorage.setItem(KEY, JSON.stringify(l)); } catch { alert('保存失败：浏览器存储不可用或已满'); } };
   const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-  const TODO = /^(\s*[-*]\s+)\[([ xX])\]\s?(.*)$/;
   const base = document.body.dataset.base || '/';
   const when = (t) => new Date(t).toLocaleString('zh-CN', { hour12: false }).slice(0, 16);
-  const body = (text, id) => text.split('\n').map((l, i) => {
-    const m = l.match(TODO);
-    if (m) return `<label class="todo${m[2] === ' ' ? '' : ' done'}"><input type="checkbox" data-id="${id}" data-i="${i}"${m[2] === ' ' ? '' : ' checked'}><span>${esc(m[3])}</span></label>`;
-    return l.trim() ? `<div>${esc(l)}</div>` : '<br>';
-  }).join('');
+  const body = (n) => `<label class="todo${n.done ? ' done' : ''}"><input type="checkbox" data-id="${n.id}"${n.done ? ' checked' : ''}><span>${esc(n.text)}</span></label>`;
+  // 勾选 / 取消勾选；返回是否有改动
+  const toggle = (e) => {
+    const id = e.target.dataset.id;
+    if (!id) return false;
+    const all = load(), n = all.find((x) => x.id === id);
+    if (!n) return false;
+    n.done = e.target.checked;
+    save(all);
+    return true;
+  };
 
   // ---- 文章页：快速记笔记 ----
   if (document.body.classList.contains('article')) {
@@ -298,7 +313,7 @@
     panel.hidden = true;
     panel.innerHTML = `<div class="note-bar"><b>记笔记</b><span class="note-tip"></span><a href="${base}notes.html">全部笔记 →</a><button type="button" data-a="x" title="关闭">×</button></div>
 <div class="note-mine"></div>
-<textarea placeholder="记点什么…  用 “- [ ] 事项” 写待办清单（Ctrl+Enter 保存）" spellcheck="false"></textarea>
+<textarea placeholder="记一条待办…（Ctrl+Enter 保存）" spellcheck="false"></textarea>
 <div class="note-foot"><button type="button" data-a="save">保存</button></div>`;
     document.body.append(btn, panel);
     const ta = panel.querySelector('textarea'), tip = panel.querySelector('.note-tip');
@@ -308,24 +323,14 @@
       btn.classList.toggle('has', l.length > 0);
       tip.textContent = l.length ? `本文 ${l.length} 条` : '';
       mine.hidden = !l.length;
-      mine.innerHTML = l.map((n) => `<div class="note-item"><time>${when(n.upd)}</time>${body(n.text, n.id)}</div>`).join('');
+      mine.innerHTML = l.map((n) => `<div class="note-item"><time>${when(n.upd)}</time>${body(n)}</div>`).join('');
     };
-    mine.addEventListener('change', (e) => {
-      const { id, i } = e.target.dataset;
-      if (i === undefined) return;
-      const all = load(), n = all.find((x) => x.id === id);
-      if (!n) return;
-      const lines = n.text.split('\n');
-      lines[i] = lines[i].replace(TODO, (_, a, __, t) => `${a}[${e.target.checked ? 'x' : ' '}] ${t}`);
-      n.text = lines.join('\n');
-      save(all);
-      refresh();
-    });
+    mine.addEventListener('change', (e) => { if (toggle(e)) refresh(); });
     const add = () => {
       const text = ta.value.trim();
       if (!text) return;
       const now = Date.now();
-      save(load().concat({ id: now.toString(36) + Math.random().toString(36).slice(2, 6), url, title, text, ts: now, upd: now }));
+      save(load().concat({ id: now.toString(36) + Math.random().toString(36).slice(2, 6), url, title, text, done: false, ts: now, upd: now }));
       ta.value = '';
       refresh();
       tip.textContent = '已保存 ✓';
@@ -357,21 +362,11 @@
     list.innerHTML = shown.map((n) => `<section class="note" data-id="${n.id}">
 <div class="note-head"><a href="${esc(n.url)}">${esc(n.title)}</a><time>${when(n.upd)}</time>
 <span><button type="button" data-a="edit">编辑</button><button type="button" data-a="del">删除</button></span></div>
-${editId === n.id ? `<textarea>${esc(n.text)}</textarea><div class="note-foot"><button type="button" data-a="ok">保存</button><button type="button" data-a="cancel">取消</button></div>` : `<div class="note-body">${body(n.text, n.id)}</div>`}</section>`).join('')
+${editId === n.id ? `<textarea>${esc(n.text)}</textarea><div class="note-foot"><button type="button" data-a="ok">保存</button><button type="button" data-a="cancel">取消</button></div>` : `<div class="note-body">${body(n)}</div>`}</section>`).join('')
       || `<p class="sub">${all.length ? '没有匹配的笔记。' : '还没有笔记。打开任意文章，点右下角 ✎ 记一条。'}</p>`;
   };
 
-  list.addEventListener('change', (e) => {
-    const { id, i } = e.target.dataset;
-    if (i === undefined) return;
-    const all = load(), n = all.find((x) => x.id === id);
-    if (!n) return;
-    const lines = n.text.split('\n');
-    lines[i] = lines[i].replace(TODO, (_, a, __, t) => `${a}[${e.target.checked ? 'x' : ' '}] ${t}`);
-    n.text = lines.join('\n');
-    save(all);
-    draw();
-  });
+  list.addEventListener('change', (e) => { if (toggle(e)) draw(); });
   list.addEventListener('click', (e) => {
     const a = e.target.dataset.a;
     const sec = e.target.closest('.note');

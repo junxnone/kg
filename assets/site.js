@@ -352,8 +352,8 @@
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !panel.hidden) panel.hidden = true; });
     refresh();
 
-    // 选中正文文字后，在选区上方浮出 "记笔记"：点击后打开面板并把选中文字带入输入框
-    // （网页无法往浏览器自带的右键菜单里加项，所以用选区浮层代替；手机上同样可用）
+    // 选中正文文字后，右下角浮出 "记笔记"：点击后打开面板并把选中文字作为引用
+    // （网页无法往浏览器自带的右键菜单里加项，所以用浮层代替；手机上同样可用）
     const md = document.querySelector('.md');
     const pop = Object.assign(document.createElement('button'), { id: 'note-pop', type: 'button', textContent: '✎ 记笔记' });
     pop.hidden = true;
@@ -364,14 +364,10 @@
       const t = s && !s.isCollapsed && md && md.contains(s.anchorNode) && md.contains(s.focusNode) ? s.toString().trim() : '';
       if (!t) { pop.hidden = true; return; }
       sel = t;
-      const r = s.getRangeAt(0).getBoundingClientRect();
-      pop.hidden = false;
-      pop.style.left = Math.max(8, Math.min(innerWidth - pop.offsetWidth - 8, r.left + r.width / 2 - pop.offsetWidth / 2)) + 'px';
-      pop.style.top = (r.top > 56 ? r.top - pop.offsetHeight - 8 : r.bottom + 8) + 'px';
+      pop.hidden = false; // 位置固定在右下角（见 CSS），避开手机上贴着选区弹出的系统菜单
     };
     let pt;
     document.addEventListener('selectionchange', () => { clearTimeout(pt); pt = setTimeout(place, 150); });
-    addEventListener('scroll', () => { pop.hidden = true; }, { passive: true });
     pop.addEventListener('mousedown', (e) => e.preventDefault()); // 不让点击清掉选区
     pop.addEventListener('click', () => {
       panel.hidden = false;

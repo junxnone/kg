@@ -20,11 +20,9 @@
       get: (k) => { try { return sessionStorage.getItem(k); } catch { return null; } },
       set: (k, v) => { try { sessionStorage.setItem(k, v); } catch {} },
     };
-    // 树的缓存放 localStorage（新开标签页也能直接用），带时间戳，5 分钟内不再请求
-    const ls = {
-      get: (k) => { try { return localStorage.getItem(k); } catch { return null; } },
-      set: (k, v) => { try { localStorage.setItem(k, v); } catch {} },
-    };
+    // 树的缓存放 sessionStorage（配额和 localStorage 分开，不和笔记抢空间；新标签页的首次请求由 Service Worker 缓存秒回）
+    // 带时间戳，5 分钟内不再请求。旧版本放在 localStorage 的副本顺手清掉
+    try { localStorage.removeItem('kg-tree'); localStorage.removeItem('kg-tree-ts'); } catch {}
     const cur = decodeURIComponent(location.pathname).replace(/^\//, '');
     const rel = (h) => decodeURIComponent(base.replace(/^\//, '') + h);
     const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -152,8 +150,8 @@
     };
 
     // 缓存：命中则同步渲染，再后台校验更新
-    const cached = ls.get('kg-tree');
-    const fresh = cached && Date.now() - (+ls.get('kg-tree-ts') || 0) < 300000;
+    const cached = ss.get('kg-tree');
+    const fresh = cached && Date.now() - (+ss.get('kg-tree-ts') || 0) < 300000;
     const key = base + 'tree.json';
     let drawn = false;
     if (cached) { try { render(JSON.parse(cached)); restoreScroll(); drawn = true; } catch {} }
@@ -161,9 +159,9 @@
       fetch(key)
         .then((r) => r.text())
         .then((txt) => {
-          ls.set('kg-tree-ts', String(Date.now()));
+          ss.set('kg-tree-ts', String(Date.now()));
           if (drawn && txt === cached) return;
-          ls.set('kg-tree', txt);
+          ss.set('kg-tree', txt);
           render(JSON.parse(txt));
           restoreScroll();
         })
@@ -494,10 +492,105 @@ ${editId === n.id ? `<textarea>${esc(n.text)}</textarea><div class="note-foot"><
   draw();
 })();
 
-// ---- PWA：注册 service worker（"添加到主屏幕 / 安装应用"需要）----
-if ('serviceWorker' in navigator) {
-  addEventListener('load', () => navigator.serviceWorker.register((document.body.dataset.base || '/') + 'sw.js').catch(() => {}));
-}
+// ---- PWA：注册 service worker + 有新版本时提示更新 ----
+// sw.js 装好新版本后先等待；用户点"立即更新"才发 'skip' 让它接管，再重载，避免新页面配旧脚本
+(() => {
+  if (!('serviceWorker' in navigator)) return;
+  let wantReload = false, asked = false;
+  const toast = (reg) => {
+    if (asked) return;
+    asked = true;
+    const d = document.createElement('div');
+    d.id = 'update-toast';
+    d.setAttribute('role', 'status');
+    d.innerHTML = '<span>有新版本</span><button type="button" data-a="go">立即更新</button><button type="button" data-a="later">稍后</button>';
+    d.addEventListener('click', (e) => {
+      const a = e.target.dataset.a;
+      if (a === 'later') d.remove();
+      else if (a === 'go') {
+        wantReload = true;
+        if (reg.waiting) reg.waiting.postMessage('skip');
+        else location.reload();
+      }
+    });
+    document.body.append(d);
+  };
+  // 只在用户点了更新之后才重载；第一次安装时 clients.claim 也会触发 controllerchange，那时不能重载
+  navigator.serviceWorker.addEventListener('controllerchange', () => { if (wantReload) location.reload(); });
+  addEventListener('load', () => {
+    navigator.serviceWorker.register((document.body.dataset.base || '/') + 'sw.js').then((reg) => {
+      const hasOld = () => !!navigator.serviceWorker.controller;
+      if (reg.waiting && hasOld()) toast(reg);
+      reg.addEventListener('updatefound', () => {
+        const w = reg.installing;
+        w?.addEventListener('statechange', () => { if (w.state === 'installed' && hasOld()) toast(reg); });
+      });
+      // 已安装的应用可能长时间开着：每小时、以及回到前台时检查一次
+      const check = () => reg.update().catch(() => {});
+      setInterval(check, 60 * 60 * 1000);
+      document.addEventListener('visibilitychange', () => { if (!document.hidden) check(); });
+    }).catch(() => {});
+  });
+})();
+
+// ---- 代码块：右上角"复制"按钮 ----
+(() => {
+  const blocks = document.querySelectorAll('.md pre:not(.mermaid)');
+  if (!blocks.length) return;
+  const copy = (text) => {
+    if (navigator.clipboard?.writeText) return navigator.clipboard.writeText(text);
+    // 非安全上下文 / 旧浏览器的回退
+    const t = Object.assign(document.createElement('textarea'), { value: text });
+    t.style.cssText = 'position:fixed;opacity:0';
+    document.body.append(t);
+    t.select();
+    const ok = document.execCommand('copy');
+    t.remove();
+    return ok ? Promise.resolve() : Promise.reject();
+  };
+  blocks.forEach((pre) => {
+    const b = Object.assign(document.createElement('button'), { type: 'button', className: 'copy-btn', textContent: '复制', title: '复制代码' });
+    b.addEventListener('click', () => {
+      const code = pre.querySelector('code') || pre;
+      copy(code.innerText.replace(/\n$/, '')).then(() => { b.textContent = '已复制 ✓'; }, () => { b.textContent = '复制失败'; });
+      clearTimeout(b.t);
+      b.t = setTimeout(() => { b.textContent = '复制'; }, 1500);
+    });
+    // 按钮放在外层容器上，不随代码横向滚动
+    const wrap = document.createElement('div');
+    wrap.className = 'code-wrap';
+    pre.before(wrap);
+    wrap.append(pre, b);
+  });
+})();
+
+// ---- 图片：点击放大查看（图片本身是链接时不拦截）----
+(() => {
+  const md = document.querySelector('.md');
+  if (!md) return;
+  let ov = null;
+  const close = () => { ov?.remove(); ov = null; };
+  md.addEventListener('click', (e) => {
+    const img = e.target.closest('img');
+    if (!img || img.closest('a') || !img.currentSrc) return;
+    close();
+    ov = document.createElement('div');
+    ov.id = 'img-zoom';
+    const big = Object.assign(document.createElement('img'), { src: img.currentSrc, alt: img.alt || '' });
+    ov.append(big);
+    if (img.alt) ov.append(Object.assign(document.createElement('p'), { textContent: img.alt }));
+    // 点图片：大图在"适应屏幕 / 原始大小"之间切换；点空白处关闭
+    big.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      if (big.naturalWidth > innerWidth || big.naturalHeight > innerHeight || ov.classList.contains('full')) ov.classList.toggle('full');
+      else close();
+    });
+    ov.addEventListener('click', close);
+    document.body.append(ov);
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && ov) close(); });
+  addEventListener('popstate', close);
+})();
 
 // ---- 随机打开一篇文章 ----
 // 时间 = max(动画最短时长, random.json 加载完成) → 然后跳转；文章页本身的加载时间不在此内，浮层会一直盖到新页面出现

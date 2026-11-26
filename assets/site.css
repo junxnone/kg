@@ -216,3 +216,24 @@ aside.toc-nav{background:var(--bg);border-radius:6px;box-shadow:0 1px 6px rgba(0
 .hero-search:hover,.hero-search:focus-within{border-color:transparent;box-shadow:0 1px 6px rgba(32,33,36,.28)}
 .hero-search input{flex:1;min-width:0;height:100%;padding:0;border:0;outline:0;background:transparent;color:var(--fg);font:inherit;font-size:1.3em;-webkit-appearance:none;appearance:none}
 .hero-search input::-webkit-search-cancel-button{cursor:pointer}
+
+/* code block copy button */
+.code-wrap{position:relative;margin:1em 0}
+.code-wrap>pre{margin:0}
+.copy-btn{position:absolute;top:6px;right:6px;padding:2px 10px;border:1px solid var(--bd);border-radius:5px;background:var(--bg);color:var(--sub);font:12px/1.6 sans-serif;cursor:pointer;transition:opacity .15s}
+.copy-btn:hover{color:var(--accent);border-color:var(--accent)}
+@media(hover:hover){.copy-btn{opacity:0}.code-wrap:hover .copy-btn,.copy-btn:focus-visible{opacity:1}}
+
+/* image zoom */
+.md img{cursor:zoom-in}
+.md a img{cursor:pointer}
+#img-zoom{position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;background:rgba(0,0,0,.88);cursor:zoom-out;animation:dice-in .15s ease-out}
+#img-zoom img{max-width:100%;max-height:calc(100% - 40px);object-fit:contain;background:#fff;border-radius:4px;cursor:zoom-in}
+#img-zoom.full{display:block;overflow:auto}
+#img-zoom.full img{max-width:none;max-height:none;cursor:zoom-out}
+#img-zoom p{margin:8px 0 0;color:#ddd;font-size:.9em;text-align:center}
+
+/* update prompt */
+#update-toast{position:fixed;top:calc(8px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);z-index:300;display:flex;gap:8px;align-items:center;max-width:calc(100vw - 16px);padding:8px 12px;border-radius:10px;background:rgba(17,24,39,.92);color:#fff;font-size:14px;box-shadow:0 4px 18px rgba(0,0,0,.35)}
+#update-toast button{padding:3px 10px;border:1px solid rgba(255,255,255,.5);border-radius:6px;background:transparent;color:#fff;font:inherit;cursor:pointer}
+#update-toast button[data-a=go]{background:#2563eb;border-color:#2563eb}

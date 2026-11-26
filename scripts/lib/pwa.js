@@ -92,12 +92,13 @@ export function writePwa(cfg, out) {
 
   // 只缓存同源 GET。
   // - 静态资源（assets / icons / pagefind / *.json / manifest）：先用缓存，同时后台更新（stale-while-revalidate）
-  // - 页面：网络优先，但 3 秒没响应就先用缓存；离线时回退缓存或首页；页面缓存最多保留 200 篇
-  put('sw.js', `const CACHE = 'kg-v2';
+  // - 页面：网络优先，但 3 秒没响应且有这一页的缓存就先用；断网时回退缓存或首页；页面缓存最多保留 200 篇
+  // - 新版本装好后不立即接管（避免新页面配旧脚本），由页面上的"有新版本"提示发 'skip' 消息再切换（见 site.js）
+  put('sw.js', `const CACHE = 'kg-v3';
 const HOME = '${b}';
 const STATIC = /\\/(assets|icons|pagefind)\\/|\\.(json|webmanifest)$/;
 const MAX_PAGES = 200;
-self.addEventListener('install', () => self.skipWaiting());
+self.addEventListener('message', (e) => { if (e.data === 'skip') self.skipWaiting(); });
 self.addEventListener('activate', (e) => e.waitUntil(
   caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim())
 ));
@@ -122,10 +123,10 @@ const swr = (req) => caches.open(CACHE).then((c) =>
 const page = (req) => caches.open(CACHE).then((c) => new Promise((resolve) => {
   let done = false;
   const finish = (r) => { if (!done && r) { done = true; resolve(r); } };
-  const cached = () => c.match(req).then((r) => r || c.match(HOME));
-  const t = setTimeout(() => cached().then(finish), 3000);
+  // 超时只用这一页自己的缓存；没有就继续等网络（不能拿首页顶替，否则慢网下打开新文章会显示首页）
+  const t = setTimeout(() => c.match(req).then(finish), 3000);
   fetch(req).then((res) => { clearTimeout(t); store(c, req, res); finish(res); })
-    .catch(() => { clearTimeout(t); cached().then((r) => finish(r || Response.error())); });
+    .catch(() => { clearTimeout(t); c.match(req).then((r) => r || c.match(HOME)).then((r) => finish(r || Response.error())); });
 }));
 
 self.addEventListener('fetch', (e) => {

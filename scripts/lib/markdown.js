@@ -7,6 +7,26 @@ import { esc, outsideCode } from './util.js';
 // 内部链接：/NNNN_x  #/NNNN_x  ./NNNN_x  NNNN_x.md  https://junxnone.github.io/<repo>/#/NNNN_x
 const INTERNAL_RE = /^(?:https?:\/\/junxnone\.github\.io\/([\w.-]+)\/)?(?:#?\/|\.\/)?(\d{4})_[^?#]*?(?:\.md)?(?:[?#].*)?$/;
 
+// 解析 ':include :type=iframe width=100% height=600px'，返回嵌入块的 HTML；不支持的返回 ''
+// - iframe：直接嵌入；有些网站禁止被嵌入，所以下面总带一个"新窗口打开"链接
+// - code：页面脚本（assets/site.js）按 data-src 抓取文本后填进去
+const dim = (v, d) => (/^\d+(\.\d+)?(px|%|vh|vw|em|rem)?$/.test(v || '') ? (/^\d+(\.\d+)?$/.test(v) ? `${v}px` : v) : d);
+function embedHtml(href, title, label) {
+  if (!/^https?:\/\//i.test(href)) return '';
+  const o = {};
+  for (const p of title.split(/\s+/)) {
+    const m = p.match(/^:?([\w-]+)=(.*)$/);
+    if (m) o[m[1]] = m[2].replace(/^['"]|['"]$/g, '');
+  }
+  const type = o.type || 'iframe';
+  const open = `<a class="embed-open" href="${esc(href)}" target="_blank" rel="noopener">${esc(label || href)} ↗</a>`;
+  if (type === 'iframe') {
+    return `<span class="embed"><iframe src="${esc(href)}" style="width:${dim(o.width, '100%')};height:${dim(o.height, '400px')}" loading="lazy" allowfullscreen></iframe>${open}</span>`;
+  }
+  if (type === 'code') return `<span class="embed"><span class="embed-code" data-src="${esc(href)}"><code>加载中…</code></span>${open}</span>`;
+  return '';
+}
+
 export function createMarkdown() {
   const md = new MarkdownIt({
     html: true,
@@ -31,10 +51,35 @@ export function createMarkdown() {
     return fence(tokens, idx, opts, env, self);
   };
 
+  // docsify 嵌入语法：[说明](url ':include :type=iframe width=100% height=600px')
+  // 在 inline 解析之后，把整个链接替换成嵌入块；识别不了的写法保持为普通链接
+  md.core.ruler.push('docsify_embed', (state) => {
+    for (const blk of state.tokens) {
+      if (blk.type !== 'inline' || !blk.children) continue;
+      const ch = blk.children;
+      for (let i = 0; i < ch.length; i++) {
+        if (ch[i].type !== 'link_open') continue;
+        const title = ch[i].attrGet('title') || '';
+        if (!title.startsWith(':include')) continue;
+        let j = i + 1;
+        while (j < ch.length && ch[j].type !== 'link_close') j++;
+        if (j >= ch.length) continue;
+        const label = ch.slice(i + 1, j).map((c) => c.content).join('');
+        const html = embedHtml(ch[i].attrGet('href') || '', title, label);
+        if (!html) continue;
+        const tok = new state.Token('html_inline', '', 0);
+        tok.content = html;
+        ch.splice(i, j - i + 1, tok);
+      }
+    }
+  });
+
   const linkOpen = md.renderer.rules.link_open || ((t, i, o, e, s) => s.renderToken(t, i, o));
   md.renderer.rules.link_open = (tokens, idx, opts, env, self) => {
     const tok = tokens[idx];
     const href = tok.attrGet('href') || '';
+    // docsify 的 ':ignore' / ':target=_blank' 等写在 title 里的指令，不应该显示成悬浮提示
+    if ((tok.attrGet('title') || '').startsWith(':')) tok.attrs = tok.attrs.filter((a) => a[0] !== 'title');
     const internal = env.resolveLink(href, env.repo);
     if (internal) tok.attrSet('href', internal);
     else if (/^https?:/i.test(href)) {

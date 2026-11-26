@@ -633,3 +633,12 @@ ${editId === n.id ? `<textarea>${esc(n.text)}</textarea><div class="note-foot"><
     }
   });
 })();
+
+// ---- :type=code 嵌入：按 data-src 抓取文本 ----
+document.querySelectorAll('.embed-code[data-src]').forEach((el) => {
+  const code = el.querySelector('code');
+  fetch(el.dataset.src)
+    .then((r) => (r.ok ? r.text() : Promise.reject()))
+    .then((t) => { code.textContent = t.length > 200000 ? t.slice(0, 200000) + '\n…（内容过长，已截断）' : t; })
+    .catch(() => { code.textContent = '加载失败，请点下方链接在新窗口打开'; });
+});

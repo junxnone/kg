@@ -291,7 +291,7 @@
   const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   const base = document.body.dataset.base || '/';
   const when = (t) => new Date(t).toLocaleString('zh-CN', { hour12: false }).slice(0, 16);
-  const body = (n) => `<label class="todo${n.done ? ' done' : ''}"><input type="checkbox" data-id="${n.id}"${n.done ? ' checked' : ''}><span>${esc(n.text)}</span></label>`;
+  const body = (n) => `<label class="todo${n.done ? ' done' : ''}"><input type="checkbox" data-id="${n.id}"${n.done ? ' checked' : ''}><span>${n.quote ? `<blockquote class="note-q">${esc(n.quote)}</blockquote>` : ''}${esc(n.text)}</span></label>`;
   // 勾选 / 取消勾选；返回是否有改动
   const toggle = (e) => {
     const id = e.target.dataset.id;
@@ -313,6 +313,7 @@
     panel.hidden = true;
     panel.innerHTML = `<div class="note-bar"><b>记笔记</b><span class="note-tip"></span><a href="${base}notes.html">全部笔记 →</a><button type="button" data-a="x" title="关闭">×</button></div>
 <div class="note-mine"></div>
+<blockquote class="note-q note-quote" hidden><button type="button" data-a="noquote" title="移除引用">×</button><span></span></blockquote>
 <textarea placeholder="记一条待办…（Ctrl+Enter 保存）" spellcheck="false"></textarea>
 <div class="note-foot"><button type="button" data-a="save">保存</button></div>`;
     document.body.append(btn, panel);
@@ -326,12 +327,17 @@
       mine.innerHTML = l.map((n) => `<div class="note-item"><time>${when(n.upd)}</time>${body(n)}</div>`).join('');
     };
     mine.addEventListener('change', (e) => { if (toggle(e)) refresh(); });
+    // 选中文字作为引用（显示为 > 样式），输入框里写自己的想法
+    const qbox = panel.querySelector('.note-quote');
+    let quote = '';
+    const setQuote = (t) => { quote = t; qbox.hidden = !t; qbox.querySelector('span').textContent = t; };
     const add = () => {
       const text = ta.value.trim();
-      if (!text) return;
+      if (!text && !quote) return;
       const now = Date.now();
-      save(load().concat({ id: now.toString(36) + Math.random().toString(36).slice(2, 6), url, title, text, done: false, ts: now, upd: now }));
+      save(load().concat({ id: now.toString(36) + Math.random().toString(36).slice(2, 6), url, title, text, quote, done: false, ts: now, upd: now }));
       ta.value = '';
+      setQuote('');
       refresh();
       tip.textContent = '已保存 ✓';
     };
@@ -340,6 +346,7 @@
       const a = e.target.dataset.a;
       if (a === 'x') panel.hidden = true;
       else if (a === 'save') add();
+      else if (a === 'noquote') setQuote('');
     });
     ta.addEventListener('keydown', (e) => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) add(); });
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !panel.hidden) panel.hidden = true; });
@@ -368,11 +375,10 @@
     pop.addEventListener('mousedown', (e) => e.preventDefault()); // 不让点击清掉选区
     pop.addEventListener('click', () => {
       panel.hidden = false;
-      ta.value = (ta.value ? ta.value + '\n' : '') + (sel.length > 500 ? sel.slice(0, 500) + '…' : sel) + '\n';
+      setQuote(sel.length > 500 ? sel.slice(0, 500) + '…' : sel);
       pop.hidden = true;
       getSelection().removeAllRanges();
       ta.focus();
-      ta.setSelectionRange(ta.value.length, ta.value.length);
     });
   }
 
@@ -389,7 +395,7 @@
   const draw = () => {
     const kw = q.value.trim().toLowerCase();
     const all = load().sort((a, b) => b.upd - a.upd);
-    const shown = all.filter((n) => !kw || (n.text + ' ' + n.title).toLowerCase().includes(kw));
+    const shown = all.filter((n) => !kw || (n.text + ' ' + (n.quote || '') + ' ' + n.title).toLowerCase().includes(kw));
     list.innerHTML = shown.map((n) => `<section class="note" data-id="${n.id}">
 <div class="note-head">${n.url ? `<a href="${esc(n.url)}">${esc(n.title)}</a>` : '<span class="plain">独立待办</span>'}<time>${when(n.upd)}</time>
 <span><button type="button" data-a="edit">编辑</button><button type="button" data-a="del">删除</button></span></div>

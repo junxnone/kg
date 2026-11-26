@@ -32,7 +32,6 @@ ${head}
     <a href="${b}tags/">🏷️ 标签</a>
     <a href="${b}recent.html">🆕 最近</a>
     <a href="${b}notes.html">📝 笔记</a>
-    <a href="${b}search.html">🔍 搜索</a>
     <a href="${b}graph.html">🧊 3D</a>
   </nav>
   <form class="q" action="${b}search.html"><input name="q" type="search" placeholder="搜索全部文章…" aria-label="搜索"></form>
@@ -88,7 +87,7 @@ export function homePage(cfg, roots, counts) {
 <h1>${esc(cfg.title)}</h1>
 <p>${total} 篇文章 · ${cfg.repos.length} 个知识库</p>
 <div class="entry">
-  <a href="${cfg.basePath}tree.html">🌲 树形浏览</a><a href="${cfg.basePath}search.html">🔍 搜索</a>
+  <a href="${cfg.basePath}tree.html">🌲 树形浏览</a>
   <a href="${cfg.basePath}tags/">🏷️ 标签</a><a href="${cfg.basePath}recent.html">🆕 最近</a><a href="${cfg.basePath}notes.html">📝 笔记</a><a href="${cfg.basePath}graph.html">🧊 3D 知识图谱</a>
 </div></section>
 <form class="hero-search" action="${cfg.basePath}search.html" role="search">

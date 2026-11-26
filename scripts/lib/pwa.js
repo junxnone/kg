@@ -90,21 +90,49 @@ export function writePwa(cfg, out) {
     ],
   }, null, 2));
 
-  // 网络优先，离线时回退到缓存；只缓存同源 GET
-  put('sw.js', `const CACHE = 'kg-v1';
+  // 只缓存同源 GET。
+  // - 静态资源（assets / icons / pagefind / *.json / manifest）：先用缓存，同时后台更新（stale-while-revalidate）
+  // - 页面：网络优先，但 3 秒没响应就先用缓存；离线时回退缓存或首页；页面缓存最多保留 200 篇
+  put('sw.js', `const CACHE = 'kg-v2';
+const HOME = '${b}';
+const STATIC = /\\/(assets|icons|pagefind)\\/|\\.(json|webmanifest)$/;
+const MAX_PAGES = 200;
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', (e) => e.waitUntil(
   caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim())
 ));
+
+const store = (c, req, res) => {
+  if (!res.ok) return;
+  c.put(req, res.clone()).then(() => (STATIC.test(new URL(req.url).pathname) ? 0 : trim(c))).catch(() => {});
+};
+// 页面缓存超过上限时，删掉最早的（keys() 按写入顺序）
+const trim = (c) => c.keys().then((ks) => {
+  const pages = ks.filter((k) => !STATIC.test(new URL(k.url).pathname));
+  return Promise.all(pages.slice(0, Math.max(0, pages.length - MAX_PAGES)).map((k) => c.delete(k)));
+});
+
+const swr = (req) => caches.open(CACHE).then((c) =>
+  c.match(req).then((hit) => {
+    const net = fetch(req).then((res) => { store(c, req, res); return res; });
+    if (hit) { net.catch(() => {}); return hit; }
+    return net;
+  }));
+
+const page = (req) => caches.open(CACHE).then((c) => new Promise((resolve) => {
+  let done = false;
+  const finish = (r) => { if (!done && r) { done = true; resolve(r); } };
+  const cached = () => c.match(req).then((r) => r || c.match(HOME));
+  const t = setTimeout(() => cached().then(finish), 3000);
+  fetch(req).then((res) => { clearTimeout(t); store(c, req, res); finish(res); })
+    .catch(() => { clearTimeout(t); cached().then((r) => finish(r || Response.error())); });
+}));
+
 self.addEventListener('fetch', (e) => {
   const req = e.request;
-  if (req.method !== 'GET' || new URL(req.url).origin !== location.origin) return;
-  e.respondWith(
-    fetch(req).then((res) => {
-      if (res.ok) { const copy = res.clone(); caches.open(CACHE).then((c) => c.put(req, copy)); }
-      return res;
-    }).catch(() => caches.match(req).then((r) => r || caches.match('${b}')))
-  );
+  const url = new URL(req.url);
+  if (req.method !== 'GET' || url.origin !== location.origin) return;
+  e.respondWith(STATIC.test(url.pathname) ? swr(req) : page(req));
 });
 `);
 }

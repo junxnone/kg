@@ -20,6 +20,11 @@
       get: (k) => { try { return sessionStorage.getItem(k); } catch { return null; } },
       set: (k, v) => { try { sessionStorage.setItem(k, v); } catch {} },
     };
+    // 树的缓存放 localStorage（新开标签页也能直接用），带时间戳，5 分钟内不再请求
+    const ls = {
+      get: (k) => { try { return localStorage.getItem(k); } catch { return null; } },
+      set: (k, v) => { try { localStorage.setItem(k, v); } catch {} },
+    };
     const cur = decodeURIComponent(location.pathname).replace(/^\//, '');
     const rel = (h) => decodeURIComponent(base.replace(/^\//, '') + h);
     const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -35,19 +40,36 @@
       return any;
     };
 
+    // 只渲染展开路径下的节点；收起的目录先放空 <ul>，第一次展开时再填充（过滤时需要整棵树，见 filter）
+    let treeData = null, full = false;
+    const lazy = new Map();
     const node = (n, path) => {
       const p = path.concat(n.n);
       const isCur = n.h && rel(n.h) === cur;
       const label = n.h ? `<a href="${base + n.h}"${isCur ? ' class="cur"' : ''}>${esc(n.n)}</a>` : `<span class="dir">${esc(n.n)}</span>`;
       const t = esc(n.n.toLowerCase());
       if (!n.c) return `<li data-t="${t}">${label}</li>`;
-      return `<li data-t="${t}"><details data-k="${esc(p.join(SEP))}"><summary>${label}${n.k ? ` <small>${n.k}</small>` : ''}</summary><ul>${n.c.map((c) => node(c, p)).join('')}</ul></details></li>`;
+      const k = p.join(SEP);
+      const eager = full || open.has(k) || curKeys.has(k);
+      if (!eager) lazy.set(k, { n, p });
+      return `<li data-t="${t}"><details data-k="${esc(k)}"${eager ? '' : ' data-lazy'}><summary>${label}${n.k ? ` <small>${n.k}</small>` : ''}</summary><ul>${eager ? n.c.map((c) => node(c, p)).join('') : ''}</ul></details></li>`;
     };
+    side.addEventListener('toggle', (e) => {
+      const d = e.target;
+      if (!d.matches?.('details[data-lazy]') || !d.open) return;
+      const it = lazy.get(d.dataset.k);
+      if (!it) return;
+      d.querySelector(':scope > ul').innerHTML = it.n.c.map((c) => node(c, it.p)).join('');
+      d.removeAttribute('data-lazy');
+      lazy.delete(d.dataset.k);
+    }, true);
 
     const applyOpen = () => side.querySelectorAll('details').forEach((d) => { d.open = open.has(d.dataset.k) || curKeys.has(d.dataset.k); });
     const saveOpen = () => ss.set('kg-open', JSON.stringify([...open]));
 
     const render = (t) => {
+      treeData = t;
+      lazy.clear();
       curKeys.clear();
       t.forEach((r) => find(r, []));
       side.innerHTML = `<ul class="tree">${t.map((r) => node(r, [])).join('')}</ul><div class="tree-empty" hidden>没有匹配的文章</div>`;
@@ -84,6 +106,7 @@
     };
     function filter() {
       q = (filterBox?.value || '').trim().toLowerCase();
+      if (q && !full && treeData) { full = true; render(treeData); return; } // 过滤要看整棵树：首次过滤时补全渲染
       const top = side.querySelectorAll(':scope > ul > li');
       if (!q) {
         side.querySelectorAll('li[hidden]').forEach((li) => (li.hidden = false));
@@ -129,18 +152,23 @@
     };
 
     // 缓存：命中则同步渲染，再后台校验更新
-    const cached = ss.get('kg-tree');
+    const cached = ls.get('kg-tree');
+    const fresh = cached && Date.now() - (+ls.get('kg-tree-ts') || 0) < 300000;
     const key = base + 'tree.json';
-    if (cached) { try { render(JSON.parse(cached)); restoreScroll(); } catch {} }
-    fetch(key)
-      .then((r) => r.text())
-      .then((txt) => {
-        if (txt === cached) return;
-        ss.set('kg-tree', txt);
-        render(JSON.parse(txt));
-        restoreScroll();
-      })
-      .catch(() => { if (!cached) side.textContent = '目录加载失败'; });
+    let drawn = false;
+    if (cached) { try { render(JSON.parse(cached)); restoreScroll(); drawn = true; } catch {} }
+    if (!(drawn && fresh)) {
+      fetch(key)
+        .then((r) => r.text())
+        .then((txt) => {
+          ls.set('kg-tree-ts', String(Date.now()));
+          if (drawn && txt === cached) return;
+          ls.set('kg-tree', txt);
+          render(JSON.parse(txt));
+          restoreScroll();
+        })
+        .catch(() => { if (!drawn) side.textContent = '目录加载失败'; });
+    }
   }
 
   // 标签页过滤

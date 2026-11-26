@@ -71,6 +71,8 @@ export function render(md, article, resolveLink, stats) {
   const env = { repo: article.repo, resolveLink, math: [], stats };
   let html = md.render(extractMath(article.body, env), env);
   html = html.replace(/KGMATH(\d+)END/g, (_, i) => env.math[+i]);
+  // 图片懒加载（含文章里手写的 <img>；代码块里的 <img 已被转义，不受影响）
+  html = html.replace(/<img\b(?![^>]*\bloading=)/g, '<img loading="lazy" decoding="async"');
   const toc = [...html.matchAll(/<h([2-6]) id="([^"]+)"[^>]*>([\s\S]*?)<\/h\1>/g)].map((m) => ({
     level: +m[1],
     id: m[2],

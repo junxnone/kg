@@ -485,7 +485,15 @@ if ('serviceWorker' in navigator) {
       let h;
       do h = list[Math.floor(Math.random() * list.length)];
       while (list.length > 1 && decodeURIComponent(base + h) === cur);
-      location.href = base + h;
+      // 先选定文章，再放一段骰子旋转动画，结束后跳转（减少动态效果偏好下缩短）
+      const ov = document.createElement('div');
+      ov.id = 'dice-overlay';
+      ov.innerHTML = `<div class="dice">${['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'].map((f, i) => `<i class="f${i + 1}">${f}</i>`).join('')}</div><p>随机抽取一篇…</p>`;
+      document.body.append(ov);
+      const ms = matchMedia('(prefers-reduced-motion: reduce)').matches ? 300 : 1300;
+      setTimeout(() => { location.href = base + h; }, ms);
+      // 从缓存（bfcache）返回时清掉浮层并恢复按钮
+      addEventListener('pageshow', (e) => { if (e.persisted) { ov.remove(); btn.disabled = false; } }, { once: true });
     } catch {
       btn.disabled = false;
     }

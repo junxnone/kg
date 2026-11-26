@@ -162,6 +162,20 @@ aside.toc-nav{background:var(--bg);border-radius:6px;box-shadow:0 1px 6px rgba(0
 .note-quote{position:relative;margin:6px 10px;padding-right:24px;max-height:30vh;overflow:auto}
 .note-quote[hidden]{display:none}
 .note-quote button{position:absolute;top:0;right:0;padding:0 6px;border:0;background:transparent;color:var(--sub);cursor:pointer;font-size:1.1em;line-height:1.4}
+/* random article: spinning dice overlay */
+#dice-overlay{perspective:600px;position:fixed;inset:0;z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:48px;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(4px);animation:dice-in .2s ease-out}
+#dice-overlay p{margin:0;color:var(--sub)}
+.dice{position:relative;width:96px;height:96px;transform-style:preserve-3d;perspective-origin:50% 50%;animation:dice-spin 1.3s cubic-bezier(.2,.7,.3,1) forwards}
+.dice i{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-style:normal;font-size:78px;line-height:1;color:#111;background:#fff;border:2px solid #cbd5e1;border-radius:14px;backface-visibility:visible;box-shadow:inset 0 0 12px rgba(0,0,0,.12)}
+.dice .f1{transform:translateZ(48px)}
+.dice .f6{transform:rotateY(180deg) translateZ(48px)}
+.dice .f2{transform:rotateY(90deg) translateZ(48px)}
+.dice .f5{transform:rotateY(-90deg) translateZ(48px)}
+.dice .f3{transform:rotateX(90deg) translateZ(48px)}
+.dice .f4{transform:rotateX(-90deg) translateZ(48px)}
+@keyframes dice-spin{from{transform:rotateX(0) rotateY(0) rotateZ(0) scale(.6)}60%{transform:rotateX(540deg) rotateY(720deg) rotateZ(180deg) scale(1.15)}to{transform:rotateX(720deg) rotateY(1080deg) rotateZ(360deg) scale(1)}}
+@keyframes dice-in{from{opacity:0}to{opacity:1}}
+@media(prefers-reduced-motion:reduce){.dice{animation:none}}
 #note-pop{position:fixed;z-index:30;padding:9px 16px;border:0;border-radius:8px;background:var(--accent);color:#fff;font:inherit;font-size:.95em;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.3)}
 #note-pop[hidden]{display:none}
 .notes-new{display:flex;gap:8px;margin:12px 0}

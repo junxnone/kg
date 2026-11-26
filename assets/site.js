@@ -290,6 +290,8 @@
   const save = (l) => { try { localStorage.setItem(KEY, JSON.stringify(l)); } catch { alert('保存失败：浏览器存储不可用或已满'); } };
   const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   const base = document.body.dataset.base || '/';
+  const homeNotes = document.getElementById('home-notes');
+  if (homeNotes) { const c = load().length; if (c) homeNotes.textContent = `📝 全部笔记 (${c})`; }
   const when = (t) => new Date(t).toLocaleString('zh-CN', { hour12: false }).slice(0, 16);
   const body = (n) => `<label class="todo${n.done ? ' done' : ''}"><input type="checkbox" data-id="${n.id}"${n.done ? ' checked' : ''}><span>${esc(n.text)}</span></label>`;
   // 勾选 / 取消勾选；返回是否有改动

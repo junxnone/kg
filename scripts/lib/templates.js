@@ -91,6 +91,11 @@ export function homePage(cfg, roots, counts) {
   <a href="${cfg.basePath}tree.html">🌲 树形浏览</a><a href="${cfg.basePath}search.html">🔍 搜索</a>
   <a href="${cfg.basePath}tags/">🏷️ 标签</a><a href="${cfg.basePath}recent.html">🆕 最近</a><a href="${cfg.basePath}graph.html">🧊 3D 知识图谱</a>
 </div></section>
+<div class="hero-notes"><a id="home-notes" href="${cfg.basePath}notes.html">📝 全部笔记</a></div>
+<form class="hero-search" action="${cfg.basePath}search.html" role="search">
+  <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M10.5 18a7.5 7.5 0 1 1 5.3-2.2L21 21"/></svg>
+  <input name="q" type="search" placeholder="搜索全部文章…" aria-label="搜索全部文章" autocomplete="off" autofocus>
+</form>
 <div class="cards">${cards}</div>
 `;
   return layout(cfg, { title: '首页', body });

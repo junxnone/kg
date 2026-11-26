@@ -163,7 +163,7 @@ export function notesPage(cfg) {
 
 export function graphPage(cfg) {
   const src = `${cfg.viewer3d}?json=${enc(cfg.siteUrl + 'kg.json')}`;
-  const body = `<iframe class="graph" src="${esc(src)}" title="3D knowledge graph" allowfullscreen></iframe>
+  const body = `<iframe class="graph" src="${esc(src)}" title="3D knowledge graph" scrolling="no" allowfullscreen></iframe>
 <p class="sub">单击节点打开文章，双击展开/折叠，右键聚焦。<a href="${esc(src)}" target="_blank" rel="noopener">全屏打开 ↗</a></p>`;
   return layout(cfg, { title: '3D 知识图谱', body, cls: 'graphpage' });
 }

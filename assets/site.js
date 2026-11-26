@@ -505,7 +505,7 @@ if ('serviceWorker' in navigator) {
   const btn = document.getElementById('rand');
   if (!btn) return;
   const base = document.body.dataset.base || '/';
-  const MIN_MS = matchMedia('(prefers-reduced-motion: reduce)').matches ? 300 : 1300;
+  const MIN_MS = matchMedia('(prefers-reduced-motion: reduce)').matches ? 300 : 650;
   const load = () => (load.p = load.p || fetch(base + 'random.json').then((r) => r.json()).catch((e) => { load.p = null; throw e; }));
   // 提前在空闲时 / 鼠标移到按钮上时预取列表，点击时通常已就绪
   btn.addEventListener('pointerenter', () => load().catch(() => {}), { once: true });

@@ -364,10 +364,16 @@
       const t = s && !s.isCollapsed && md && md.contains(s.anchorNode) && md.contains(s.focusNode) ? s.toString().trim() : '';
       if (!t) { pop.hidden = true; return; }
       sel = t;
-      pop.hidden = false; // 位置固定在右下角（见 CSS），避开手机上贴着选区弹出的系统菜单
+      pop.hidden = false;
+      // 放在选区末尾的右下方：系统菜单在选区上方，选区手柄在末尾正下方，所以再往下让开一段
+      const rs = s.getRangeAt(0).getClientRects(), r = rs[rs.length - 1] || s.getRangeAt(0).getBoundingClientRect();
+      const w = pop.offsetWidth, h = pop.offsetHeight;
+      pop.style.left = Math.max(8, Math.min(innerWidth - w - 8, r.right - w + 8)) + 'px';
+      pop.style.top = Math.max(8, Math.min(innerHeight - h - 8, r.bottom + 34)) + 'px';
     };
     let pt;
     document.addEventListener('selectionchange', () => { clearTimeout(pt); pt = setTimeout(place, 150); });
+    addEventListener('scroll', () => { if (!pop.hidden) place(); }, { passive: true }); // 滚动时跟随选区
     pop.addEventListener('mousedown', (e) => e.preventDefault()); // 不让点击清掉选区
     pop.addEventListener('click', () => {
       panel.hidden = false;

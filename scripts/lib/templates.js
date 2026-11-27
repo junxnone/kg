@@ -31,6 +31,7 @@ ${head}
     <a href="${b}tree.html">🌲 树形</a>
     <a href="${b}tags/">🏷️ 标签</a>
     <a href="${b}recent.html">🆕 最近</a>
+    <a href="${b}roadmap/">🗺️ RoadMap</a>
     <a href="${b}notes.html">📝 笔记</a>
     <a href="${b}graph.html">🧊 3D</a>
   </nav>
@@ -88,7 +89,7 @@ export function homePage(cfg, roots, counts) {
 <p>${total} 篇文章 · ${cfg.repos.length} 个知识库</p>
 <div class="entry">
   <a href="${cfg.basePath}tree.html">🌲 树形浏览</a>
-  <a href="${cfg.basePath}tags/">🏷️ 标签</a><a href="${cfg.basePath}recent.html">🆕 最近</a><a href="${cfg.basePath}notes.html">📝 笔记</a><a href="${cfg.basePath}graph.html">🧊 3D 知识图谱</a>
+  <a href="${cfg.basePath}tags/">🏷️ 标签</a><a href="${cfg.basePath}recent.html">🆕 最近</a><a href="${cfg.basePath}roadmap/">🗺️ RoadMap</a><a href="${cfg.basePath}notes.html">📝 笔记</a><a href="${cfg.basePath}graph.html">🧊 3D 知识图谱</a>
 </div></section>
 <form class="hero-search" action="${cfg.basePath}search.html" role="search">
   <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M10.5 18a7.5 7.5 0 1 1 5.3-2.2L21 21"/></svg>
@@ -185,4 +186,26 @@ export function recentPage(cfg, articles, limit = 100) {
 <section class="pane" id="pane-new">${articleList(cfg, top('created'), 'created')}</section>
 <section class="pane" id="pane-upd" hidden>${articleList(cfg, top('updated'), 'updated')}</section>`;
   return layout(cfg, { title: '最近', body });
+}
+
+// RoadMap 列表：卡片排布和首页的知识库卡片一致，点击进入鱼骨图
+export function roadmapIndexPage(cfg, items) {
+  const card = (it) => {
+    const stat = it.pct === null ? `${it.levels} 个层次` : `已创建 ${it.done} / 未创建 ${it.todo} · ${it.pct}%`;
+    const bar = it.pct === null ? '' : `<i class="bar"><i style="width:${it.pct}%"></i></i>`;
+    return `<a class="card" href="${cfg.basePath}${it.path}.html"><b>${esc(it.a.title)}</b><span>${esc(it.repo.title)} · ${it.levels} 个层次</span>${bar}<em>${esc(stat)}</em></a>`;
+  };
+  const body = `<h1>🗺️ RoadMap</h1>
+<p class="sub">文件名含 “RoadMap” 的文章，用鱼骨图展示学习路线；绿色是已写的文章（点击打开），黄色是还没写的。共 ${items.length} 个。</p>
+${items.length ? `<div class="cards">${items.map(card).join('')}</div>` : '<p>还没有 RoadMap。在任意知识库里新建文件名含 RoadMap 的文章（例如 <code>Linux RoadMap</code>）即可。</p>'}`;
+  return layout(cfg, { title: 'RoadMap', body });
+}
+
+// 单个 RoadMap：内嵌 jstools/mdfishbone，数据是构建生成的 roadmap/<repo>/<file>.md（链接已改写成本站文章地址）
+export function roadmapPage(cfg, it) {
+  const src = `${cfg.viewerFishbone}?md=${enc(it.mdUrl)}`;
+  const body = `<div class="head"><div class="crumbs"><a href="${cfg.basePath}roadmap/">RoadMap</a> › ${esc(it.repo.title)}</div><a class="edit-btn" href="${esc(it.a.edit || `https://github.com/${it.repo.repo}/issues/${Number(it.a.num)}`)}" target="_blank" rel="noopener" title="在 GitHub 打开对应 issue 编辑">✏️ Edit</a></div>
+<iframe class="graph" src="${esc(src)}" title="${esc(it.a.title)}" allowfullscreen></iframe>
+<p class="sub">点击绿色条目在新标签页打开文章。<a href="${cfg.basePath}${it.a.repo}/${enc(it.a.file)}.html">查看原文</a> · <a href="${esc(src)}" target="_blank" rel="noopener">全屏打开 ↗</a></p>`;
+  return layout(cfg, { title: it.a.title, body, cls: 'graphpage' });
 }

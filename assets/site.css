@@ -248,3 +248,7 @@ aside.toc-nav{background:var(--bg);border-radius:6px;box-shadow:0 1px 6px rgba(0
 /* GFM task lists: - [ ] / - [x] */
 .md li.task-item{list-style:none}
 .md .task-cb{margin:0 .45em 0 -1.4em;vertical-align:middle;accent-color:var(--accent)}
+
+/* RoadMap 卡片里的进度条（已创建 / 总数） */
+.card .bar{display:block;height:6px;margin-top:8px;border-radius:3px;background:#fcc419;overflow:hidden}
+.card .bar i{display:block;height:100%;background:#2f9e44}

@@ -10,6 +10,7 @@ import { genKgJson } from './lib/kg.js';
 import { safeName } from './lib/util.js';
 import * as T from './lib/templates.js';
 import { writePwa } from './lib/pwa.js';
+import { buildRoadmaps } from './lib/roadmap.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const arg = (k, d) => {
@@ -100,6 +101,14 @@ for (const [t, arts] of tags) write(`tags/${tagFiles.get(t)}.html`, T.tagPage(cf
 
 write('index.html', T.homePage(cfg, roots, counts));
 write('recent.html', T.recentPage(cfg, articles));
+
+// RoadMap：文件名含 roadmap 的文章 → 链接改写后的 md + 鱼骨图页面 + 列表页
+const roadmaps = buildRoadmaps(cfg, articles, resolve);
+for (const it of roadmaps) {
+  write(`${it.path}.md`, it.md);
+  write(`${it.path}.html`, T.roadmapPage(cfg, it));
+}
+write('roadmap/index.html', T.roadmapIndexPage(cfg, roadmaps));
 write('search.html', T.searchPage(cfg));
 write('notes.html', T.notesPage(cfg));
 write('graph.html', T.graphPage(cfg));
@@ -110,5 +119,6 @@ write('.nojekyll', '');
 fs.cpSync(path.join(ROOT, 'assets'), path.join(OUT, 'assets'), { recursive: true });
 writePwa(cfg, OUT);
 
-console.log(`pages: ${articles.length} articles, ${tags.size} tags`);
+console.log(`pages: ${articles.length} articles, ${tags.size} tags, ${roadmaps.length} roadmaps`);
+for (const it of roadmaps) console.log(`  roadmap ${it.a.repo}/${it.a.file}: ${it.done} done / ${it.todo} todo, ${it.unresolved} unresolved internal links`);
 console.log(`math: ${stats.math} formulas, ${stats.mathFail} failed (rendered as red source)`);

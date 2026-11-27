@@ -244,3 +244,7 @@ aside.toc-nav{background:var(--bg);border-radius:6px;box-shadow:0 1px 6px rgba(0
 .embed-open{display:block;margin-top:4px;font-size:.85em;color:var(--sub)}
 .embed-code{display:block;max-height:480px;overflow:auto;padding:12px 14px;border-radius:6px;background:var(--code);font:.85em/1.5 ui-monospace,SFMono-Regular,Consolas,monospace;white-space:pre}
 .embed-code code{background:none;padding:0}
+
+/* GFM task lists: - [ ] / - [x] */
+.md li.task-item{list-style:none}
+.md .task-cb{margin:0 .45em 0 -1.4em;vertical-align:middle;accent-color:var(--accent)}

@@ -51,6 +51,26 @@ export function createMarkdown() {
     return fence(tokens, idx, opts, env, self);
   };
 
+  // GFM 任务列表：列表项以 "[ ] " / "[x] " 开头时渲染成（只读）复选框；li 加 task-item，所在列表加 task-list
+  md.core.ruler.after('inline', 'task_lists', (state) => {
+    const t = state.tokens;
+    for (let i = 2; i < t.length; i++) {
+      if (t[i].type !== 'inline' || t[i - 1].type !== 'paragraph_open' || t[i - 2].type !== 'list_item_open') continue;
+      const m = t[i].content.match(/^\[([ xX])\][  ]/);
+      const first = t[i].children && t[i].children[0];
+      if (!m || !first || first.type !== 'text' || !first.content.startsWith(m[0])) continue;
+      first.content = first.content.slice(m[0].length);
+      const cb = new state.Token('html_inline', '', 0);
+      cb.content = `<input type="checkbox" class="task-cb" disabled${m[1] === ' ' ? '' : ' checked'}> `;
+      t[i].children.unshift(cb);
+      t[i - 2].attrJoin('class', 'task-item');
+      const li = t[i - 2];
+      for (let j = i - 3; j >= 0; j--) {
+        if (/^(bullet|ordered)_list_open$/.test(t[j].type) && t[j].level === li.level - 1) { t[j].attrJoin('class', 'task-list'); break; }
+      }
+    }
+  });
+
   // docsify 嵌入语法：[说明](url ':include :type=iframe width=100% height=600px')
   // 在 inline 解析之后，把整个链接替换成嵌入块；识别不了的写法保持为普通链接
   md.core.ruler.push('docsify_embed', (state) => {

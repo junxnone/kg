@@ -63,7 +63,7 @@ function firstHeading(md) {
     }
     if (fence) continue;
     const m = line.match(/^#\s+(.+?)\s*#*\s*$/);
-    if (m) return m[1].replace(/[*_`]/g, '').trim();
+    if (m) return m[1].replace(/!?\[([^\]]*)\]\([^)]*\)/g, '$1').replace(/[*_`]/g, '').trim(); // 标题里的链接只留文字
   }
   return '';
 }

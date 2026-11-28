@@ -12,12 +12,15 @@ export function buildRoadmaps(cfg, articles, resolve) {
   for (const a of articles.filter(isRoadmap)) {
     let unresolved = 0;
     // 能按编号找到文章的链接改成本站绝对地址；找不到的内部链接去掉链接只留文字（比指向 404 好）
-    const md = a.body.replace(/\[([^\]]*)\]\(([^)\s]+)\)/g, (m, text, href) => {
+    let md = a.body.replace(/\[([^\]]*)\]\(([^)\s]+)\)/g, (m, text, href) => {
       const to = resolve(href, a.repo);
       if (to) return `[${text}](${new URL(to, cfg.siteUrl).href})`;
       if (LOOKS_INTERNAL.test(href)) { unresolved++; return text; }
       return m;
     });
+
+    // 标题本身是链接时（如 `# [Linux RoadMap](…)`）鱼头会显示成 markdown 源码，去掉链接只留文字
+    md = md.replace(/^(# )\[([^\]]*)\]\([^)]*\)[ \t]*$/m, '$1$2');
 
     // 统计（和 mdfishbone 的规则一致：只数 "- [x]" / "- [ ]" 复选项；## 是层次）
     const done = (md.match(/^\s*- \[[xX]\]/gm) || []).length;

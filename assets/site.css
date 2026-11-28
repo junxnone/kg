@@ -252,3 +252,45 @@ aside.toc-nav{background:var(--bg);border-radius:6px;box-shadow:0 1px 6px rgba(0
 /* RoadMap 卡片里的进度条（已创建 / 总数） */
 .card .bar{display:block;height:6px;margin-top:8px;border-radius:3px;background:#fcc419;overflow:hidden}
 .card .bar i{display:block;height:100%;background:#2f9e44}
+
+/* ---- RoadMap 鱼骨图（移植自 jstools/mdfishbone，类名统一加 fb- 前缀） ---- */
+.roadmap main{max-width:1240px}
+.fb{--fb-done:#b7e4c7;--fb-done-b:#2d6a4f;--fb-todo:#ffe699;--fb-todo-b:#bf9000;--fb-bone:#3b5bdb;--fb-plain:#e7ecff;--fb-plain-b:#748ffc;--fb-gname:#1c2f7a;--fb-chip-fg:#222;--fb-pill-bg:#fff;--fb-fg:#333}
+[data-theme=dark] .fb{--fb-done:#1d4a35;--fb-done-b:#40916c;--fb-todo:#4a3d0c;--fb-todo-b:#bf9000;--fb-bone:#4c6ef5;--fb-plain:#222c4d;--fb-plain-b:#5c76e8;--fb-gname:#9db4ff;--fb-chip-fg:#e6e9ee;--fb-pill-bg:#1b1e22;--fb-fg:#d7dae0}
+.fb-legend{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:4px 0 14px;color:var(--sub);font-size:.85em}
+.fb-lg{display:inline-block;padding:0 8px;border-radius:10px;border:1px solid;font-size:12px;color:var(--fg)}
+.fb-lg.done{background:#b7e4c7;border-color:#2d6a4f;color:#222}
+.fb-lg.todo{background:#ffe699;border-color:#bf9000;color:#222}
+[data-theme=dark] .fb-lg.done{background:#1d4a35;border-color:#40916c;color:#e6e9ee}
+[data-theme=dark] .fb-lg.todo{background:#4a3d0c;border-color:#bf9000;color:#e6e9ee}
+.fb-wrap{overflow-x:auto}
+.fb-board{position:relative;padding:84px 0 44px 100px;max-width:1180px}
+.fb-slot{padding:0 0 30px 0}
+.fb-block{border-left:4px solid var(--fb-bone);padding:6px 0 6px 14px;position:relative;margin-left:6px}
+.fb-lv{display:inline-block;background:var(--fb-bone);color:#fff;font-weight:bold;font-size:14px;padding:3px 12px;border-radius:14px;margin:0 0 8px -28px}
+.fb-lv small{font-weight:normal;opacity:.85;margin-left:6px}
+.fb-grp{position:relative;display:flex;gap:10px;margin:0 0 5px 0;padding-left:14px}
+.fb-grp::before{content:"";position:absolute;left:-14px;top:11px;width:22px;border-top:2px solid var(--fb-bone);opacity:.55}
+.fb-gname{font-weight:600;color:var(--fb-gname);flex:0 0 150px}
+.fb-gname a{color:var(--fb-gname);text-decoration:none}.fb-gname a:hover{text-decoration:underline}
+.fb-items{display:flex;flex-wrap:wrap;gap:3px 4px;flex:1}
+.fb-chip{display:inline-block;padding:0 7px;border-radius:9px;border:1px solid;font-size:12px;line-height:19px;text-decoration:none;color:var(--fb-chip-fg);white-space:nowrap}
+.fb-chip.done{background:var(--fb-done);border-color:var(--fb-done-b)}
+.fb-chip.todo{background:var(--fb-todo);border-color:var(--fb-todo-b)}
+.fb-chip.plain{background:var(--fb-plain);border-color:var(--fb-plain-b)}
+a.fb-chip:hover{filter:brightness(.93);text-decoration:none}
+[data-theme=dark] a.fb-chip:hover{filter:brightness(1.25)}
+.fb-lv a,.fb-head a{color:#fff;text-decoration:none}.fb-lv a:hover,.fb-head a:hover{text-decoration:underline}
+.fb-head{position:absolute;left:6px;top:14px;white-space:nowrap;background:var(--fb-bone);color:#fff;font-weight:bold;padding:10px 16px;border-radius:30px 30px 8px 8px;z-index:2;text-align:center}
+svg.fb-lines{position:absolute;left:0;top:0;pointer-events:none;z-index:1}
+.fb-pill{fill:var(--fb-pill-bg);stroke:#868e96;stroke-width:1}
+.fb-pilltxt{fill:var(--fb-fg)}
+@media(max-width:640px){
+  .fb-board{padding-left:40px;max-width:none}
+  .fb-block{margin-left:4px;padding-left:10px}
+  .fb-lv{margin-left:-20px;font-size:13px}
+  .fb-grp{flex-direction:column;gap:3px;padding-left:12px}
+  .fb-grp::before{left:-10px;width:16px}
+  .fb-gname{flex:none}
+  .fb-head{font-size:13px;padding:8px 12px}
+}

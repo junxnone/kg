@@ -201,11 +201,15 @@ ${items.length ? `<div class="cards">${items.map(card).join('')}</div>` : '<p>�
   return layout(cfg, { title: 'RoadMap', body });
 }
 
-// 单个 RoadMap：内嵌 jstools/mdfishbone，数据是构建生成的 roadmap/<repo>/<file>.md（链接已改写成本站文章地址）
+// 单个 RoadMap：构建阶段生成的鱼骨图 HTML（见 fishbone.js），骨线由 assets/fishbone.js 在浏览器里画
 export function roadmapPage(cfg, it) {
-  const src = `${cfg.viewerFishbone}?md=${enc(it.mdUrl)}`;
-  const body = `<div class="head"><div class="crumbs"><a href="${cfg.basePath}roadmap/">RoadMap</a> › ${esc(it.repo.title)}</div><a class="edit-btn" href="${esc(it.a.edit || `https://github.com/${it.repo.repo}/issues/${Number(it.a.num)}`)}" target="_blank" rel="noopener" title="在 GitHub 打开对应 issue 编辑">✏️ Edit</a></div>
-<iframe class="graph" src="${esc(src)}" title="${esc(it.a.title)}" allowfullscreen></iframe>
-<p class="sub">点击绿色条目在新标签页打开文章。<a href="${cfg.basePath}${it.a.repo}/${enc(it.a.file)}.html">查看原文</a> · <a href="${esc(src)}" target="_blank" rel="noopener">全屏打开 ↗</a></p>`;
-  return layout(cfg, { title: it.a.title, body, cls: 'graphpage' });
+  const b = cfg.basePath;
+  const lg = it.tree ? '' : `<span class="fb-lg done">已创建 ${it.done}</span><span class="fb-lg todo">未创建 ${it.todo}</span>`;
+  const edit = it.a.edit || `https://github.com/${it.repo.repo}/issues/${Number(it.a.num)}`;
+  const body = `<div class="head"><div class="crumbs"><a href="${b}roadmap/">RoadMap</a> › ${esc(it.repo.title)}</div><a class="edit-btn" href="${esc(edit)}" target="_blank" rel="noopener" title="在 GitHub 打开对应 issue 编辑">✏️ Edit</a></div>
+<h1>${esc(it.a.title)}</h1>
+<div class="fb-legend">${lg}<a href="${b}${it.a.repo}/${enc(it.a.file)}.html">查看原文</a></div>
+<div class="fb"><div class="fb-wrap">${it.html}</div></div>
+<script src="${b}assets/fishbone.js" defer></script>`;
+  return layout(cfg, { title: it.a.title, body, cls: 'roadmap' });
 }

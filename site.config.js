@@ -8,8 +8,6 @@ export default {
   siteUrl,
   // 3D 图谱查看器（jstools 3dkg），通过 ?json= 加载本站 kg.json
   viewer3d: 'https://junxnone.github.io/jstools/3dkg/',
-  // RoadMap 鱼骨图查看器（jstools mdfishbone），通过 ?md= 读取本站生成的 md
-  viewerFishbone: 'https://junxnone.github.io/jstools/mdfishbone/',
   // 源库：docs 下顶层的 NNNN_*.md（docs/bk 不处理）
   repos: [
     { name: 'aiwiki', title: 'AI Wiki', desc: '机器学习 / 深度学习 / 工具', repo: 'junxnone/aiwiki' },

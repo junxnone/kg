@@ -105,7 +105,6 @@ write('recent.html', T.recentPage(cfg, articles));
 // RoadMap：文件名含 roadmap 的文章 → 链接改写后的 md + 鱼骨图页面 + 列表页
 const roadmaps = buildRoadmaps(cfg, articles, resolve);
 for (const it of roadmaps) {
-  write(`${it.path}.md`, it.md);
   write(`${it.path}.html`, T.roadmapPage(cfg, it));
 }
 write('roadmap/index.html', T.roadmapIndexPage(cfg, roadmaps));

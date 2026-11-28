@@ -8,7 +8,7 @@
 | 搜索结果列表 | `search.html`（[Pagefind](https://pagefind.app)，支持中文，可按库 / label 过滤） |
 | 标签浏览 | `tags/`；标签 = issue Labels + 路径各层级，点击进入文章列表 |
 | 3D 知识图谱 | `graph.html`，嵌入 [jstools/3dkg](https://github.com/junxnone/jstools)，数据是构建生成的 `kg.json` |
-| RoadMap 鱼骨图 | `roadmap/`；文件名含 RoadMap 的文章各一张卡片，点击用 [jstools/mdfishbone](https://github.com/junxnone/jstools) 渲染；构建时把 md 里的站内链接按 issue 编号改写成本站文章地址 |
+| RoadMap 鱼骨图 | `roadmap/`；文件名含 RoadMap 的文章各一张卡片，点击进入鱼骨图。解析和 HTML 在构建时生成（移植自 [jstools/mdfishbone](https://github.com/junxnone/jstools)，不再用 iframe），骨线由 `assets/fishbone.js` 在浏览器里画；md 里的站内链接按 issue 编号改写成本站文章地址，深色模式跟随站点 |
 
 `docs/bk/` 不处理。文章 URL 为 `/<repo>/<NNNN_Title>.html`（编号只在库内唯一，所以带库名前缀）。
 
